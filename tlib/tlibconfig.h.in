@@ -1,0 +1,20 @@
+/* tlibconfig.h
+ *
+ * This is a generated file.  Please modify 'tlibconfig.h.in'
+ */
+
+#ifndef __TLIBCONFIG_H__
+#define __TLIBCONFIG_H__
+
+#include <tlib/tmacros.h>
+
+T_BEGIN_DECLS
+
+#define TLIB_MAJOR_VERSION @TLIB_MAJOR_VERSION@
+#define TLIB_MINOR_VERSION @TLIB_MINOR_VERSION@
+#define TLIB_MICRO_VERSION @TLIB_MICRO_VERSION@
+
+T_END_DECLS
+
+#endif /* __TLIBCONFIG_H__ */
+
