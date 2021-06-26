@@ -1,3 +1,9 @@
+/* SPDX-License-Identifier: BSD-2-Clause */
+/*******************************************************************************
+ * Copyright 2020, acafons
+ * All rights reserved.
+ *******************************************************************************/
+
 #ifndef __T_VERSION_H__
 #define __T_VERSION_H__
 
