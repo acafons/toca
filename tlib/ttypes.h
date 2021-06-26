@@ -1,3 +1,20 @@
+/* TLIB - Library of useful and simple routines for C programming
+ * Copyright (C) 2021  Anderson Fonseca
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, see <http://www.gnu.org/licenses/>.
+ */
+
 #ifndef __T_TYPES_H__
 #define __T_TYPES_H__
 
@@ -7,17 +24,15 @@
 
 /* List the type of classes
  */
-#define CLASS_MAX_SIZE 30
+#define TLIB_CLASS_MAX_SIZE 30
 
-#define CLASS_TOBJECT "tobject"
+#define TLIB_CLASS_TOBJECT "tobject"
+#define TLIB_CLASS_TSTRING "tstring"
 
-/* We prefix variable declarations so they can
- * properly get exported in Windows DLLs.
- */
 #ifndef TLIB_VAR
 #  ifdef T_PLATFORM_WIN32
 #    ifdef TLIB_STATIC_COMPILATION
-#      define GLIB_VAR extern
+#      define TLIB_VAR extern
 #    else /* !TLIB_STATIC_COMPILATION */
 #      ifdef TLIB_COMPILATION
 #        ifdef DLL_EXPORT
@@ -34,6 +49,4 @@
 #  endif /* !T_PLATFORM_WIN32 */
 #endif /* TLIB_VAR */
 
-
 #endif /* __T_TYPES_H__ */
-

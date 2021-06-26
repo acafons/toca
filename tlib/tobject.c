@@ -1,3 +1,22 @@
+/* TLIB - Library of useful and simple routines for C programming
+ * Copyright (C) 2021  Anderson Fonseca
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include "config.h"
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
@@ -7,92 +26,88 @@
 #include "tobject-p.h"
 #include "ttypes.h"
 
+#define TLIB_OBJECT_MAGIC 0x70CAC0DE
 
-static int
-__t_object_hash(const void *this)
+/**
+ * @addtogroup TLib
+ * @{
+ */
+
+/**
+ * @defgroup tobject Object type
+ * @brief The base object type
+ * 
+ * tobject is the fundamental type providing the common attributes and
+ * methods for all object types in TLIB.
+ */
+
+static int __tobject_hash(const void *this)
 {
-	(void)(this);
-	return -1;
+        (void)(this);
+        return -1;
 }
 
-static bool
-__t_object_equals(const void *this,
-		  const void *obj)
+static bool __tobject_equals(const void *this, const void *ref)
 {
-	TObject *object = (TObject *) this;
-	TObject *ref = (TObject *) obj;
+        tobject *o = (tobject *) this;
+        tobject *r = (tobject *) ref;
 
-	return (object == ref);
+        return (o == r);
 }
 
-const char *
-__t_object_get_class(const void *this)
+static const char* __tobject_getclass(const void *this)
 {
-	TObject *object = (TObject *) this;
+        tobject *o = (tobject *) this;
 
-	return strdup(object->class_type);
+        return o->class_type;
 }
 
-static TObject *
-__t_object_clone(const void *this)
+static tobject* __tobject_clone(const void *this)
 {
-	(void)(this);
-	return NULL;
+        (void)(this);
+        return NULL;
 }
 
-static void
-__t_object_free(void *this)
+static const char* __tobject_to_string(const void *this)
 {
-	TObject *object = (TObject *) this;
-	free(object);
+        static char *s = "Empty object.";
+
+        (void)(this);
+
+        return s;
+}
+
+static void __tobject_free(void *this)
+{
+        tobject *o = (tobject *) this;
+        free(o);
 }
 
 /**
- * t_object_new:
- *
- * Construct a new object.
+ * Initiliazes a object.
  * 
- * Returns: on success, functions return a pointer to the object allocated. It
- *          returns NULL if insufficent memory was available.
+ * @param[in] o The object to be initialized.
  */
-TObject *
-t_object_new()
+void tobject_init(tobject * const o)
 {
-	return (TObject *) calloc(1, sizeof(TObject));
+        o->magic = TLIB_OBJECT_MAGIC;
+
+        o->vtable->tobject_clone     = __tobject_clone;
+        o->vtable->tobject_equals    = __tobject_equals;
+        o->vtable->tobject_getclass  = __tobject_getclass;
+        o->vtable->tobject_hash      = __tobject_hash;
+        o->vtable->tobject_to_string = __tobject_to_string;
+        o->vtable->tobject_free      = __tobject_free;
 }
 
 /**
- * t_object_init:
- * @object: the object to be initialized.
- *
- * Initiliaze a object.
+ * Destructs a object.
  * 
+ * @param[in] o The object to be freed.
  */
-void
-t_object_init(TObject * const object)
+void tobject_free(tobject *o)
 {
-	strncpy(object->class_type, CLASS_TOBJECT, CLASS_MAX_SIZE);
-
-	object->clone_of_func  = __t_object_clone;
-	object->equals_func    = __t_object_equals;
-	object->get_class_func = __t_object_get_class;
-	object->hash_func      = __t_object_hash;
-	object->free_func      = __t_object_free;
-}
-
-/**
- * Destruct a object.
- * 
- * @param[in] object The object parameter.
- * 
- * @return none.
- */
-void
-t_object_free(TObject *object)
-{
-	if (!object) return;
-
-	object->free_func(object);
+        o->vtable->tobject_free(o);
 }
 
 /**
@@ -100,54 +115,75 @@ t_object_free(TObject *object)
  * 
  * @param[in] this The object parameter.
  * 
- * @return a hash code value for this object or -1 if not supported.
-  */
-int
-t_object_hash(const TObject *object)
+ * @returns the hash code value for this object or -1 if not supported.
+ */
+int tobject_hash(const tobject *o)
 {
-    return object->hash_func(object);
+        return o->vtable->tobject_hash(o);
 }
 
 /**
  * Indicates whether some other object is "equal to" this one.
  * 
- * @param[in] this The object parameter.
+ * @param[in] o    The object parameter.
  * @param[in] ref  The reference object with which to compare.
  * 
- * @return {@code true} if this object is the same as the obj
- *         argument; {@code false} otherwise. 
+ * @returns {@code true} if this object is the same as the obj
+ *          argument; {@code false} otherwise. 
  */
-bool
-t_object_equals(const TObject *object,
-		const TObject *ref)
+bool tobject_equals(const tobject *o, const tobject *ref)
 {
-    return object->equals_func(object, ref);
+        return o->vtable->tobject_equals(o, ref);
 }
 
 /**
  * Returns the runtime class of this {@code Object}.
  * 
- * @param[in] this The object parameter.
+ * @param[in] o The object parameter.
  * 
- * @return a pointer to the class type string. It returns NULL if insufficient
- *         memory was available. The caller is responsible for free the string.
+ * @returns a pointer to the class type string. The string cannot be freed or
+ *          changed.
  */
-const char *
-t_object_get_class(const TObject *object)
+const char* tobject_getclass(const tobject *o)
 {
-    return object->get_class_func(object);
+        return o->vtable->tobject_getclass(o);
+}
+
+/**
+ * Returns a string representation of the object.
+ * 
+ * @param[in] o The object parameter.
+ * 
+ * @returns a pointer to the string or NULL if insufficient memory.
+ *          The string cannot be freed or changed.
+ */
+const char* tobject_to_string(const tobject *o)
+{
+        return o->vtable->tobject_to_string(o);
 }
 
 /**
  * Creates and returns a copy of this object.
  * 
- * @param[in] this The object parameter.
+ * @param[in] o The object parameter.
  * 
- * @return a clone of the object or NULL if insufficent memory was available or
- *         the object doesn't support the clone operation.
+ * @returns a clone of the object or NULL if insufficent memory was available or
+ *          the object doesn't support the clone operation.
  */
-TObject *object_clone(const TObject *object)
+tobject* tobject_clone(const tobject *o)
 {
-    return object->clone_of_func(object);
+        return o->vtable->tobject_clone(o);
 }
 
+/**
+ * Validates if an object is a type of tobject.
+ * 
+ * @param[in] o The object parameter.
+ * 
+ * @returns {@code true} if the object is a tobject; {@code false} otherwise.
+ */
+bool tobject_istypeof_object(const tobject *o)
+{
+        return o->magic == TLIB_OBJECT_MAGIC;
+}
+/** @} */

@@ -1,111 +1,216 @@
-#ifndef _STRING_T_H_
-#define _STRING_T_H_
+/* TLIB - Library of useful and simple routines for C programming
+ * Copyright (C) 2021  Anderson Fonseca
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, see <http://www.gnu.org/licenses/>.
+ */
+
+#ifndef __TSTRING_H_
+#define __TSTRING_H_
+
+#if !defined (__TLIB_H_INSIDE__) && !defined (TLIB_COMPILATION)
+#error "Only <tlib.h> can be included directly."
+#endif
 
 #include <stdbool.h>
-#include "native_type.h"
-#include "object_t.h"
+#include <tversion.h>
+#include <tobject.h>
+#include <tmacros.h>
 
-struct string_t;
+TLIB_BEGIN_DECLS
 
-/* Memory allocator */
-struct string_t *string_new();
+typedef struct tstring tstring;
 
-/* Init object */
-bool string_init(struct string_t *, char *s);
-bool string_init_v2(struct string_t *, struct string_t *original);
-bool string_init_v3(struct string_t *, char *s, int offset, int count);
-bool string_init_v4(struct string_t *, byte *bytes, int bytes_len, int offset,
-                    int count);
-bool string_init_v5(struct string_t *);
+TLIB_AVAILABLE_IN_ALL
+tstring* tstring_new(const char *s);
 
-/* Cleanup */
-void string_free(struct string_t *);
+TLIB_AVAILABLE_IN_ALL
+tstring* tstring_new_v2(const tstring *s);
 
-/* Methods */
-int  string_length(struct string_t *);
-bool string_is_empty(struct string_t *);
-char string_char_at(struct string_t *, int index);
-int  string_get_chars(struct string_t *, int src_begin, int src_end, char *dst,
+TLIB_AVAILABLE_IN_ALL
+tstring* tstring_new_v3(const char *s, int offset, int count);
+
+TLIB_AVAILABLE_IN_ALL
+tstring* tstring_new_v4();
+
+TLIB_AVAILABLE_IN_ALL
+void tstring_free(tstring *s);
+
+TLIB_AVAILABLE_IN_ALL
+tstring* tstring_clone(tstring *s);
+
+TLIB_AVAILABLE_IN_ALL
+int  tstring_length(const tstring *s);
+
+TLIB_AVAILABLE_IN_ALL
+bool tstring_isempty(const tstring *s);
+
+TLIB_AVAILABLE_IN_ALL
+char string_at(const tstring *s, int index);
+
+TLIB_AVAILABLE_IN_ALL
+int  tstring_getchars(const tstring *s, int src_begin, int src_end, char *dst,
                       int dst_begin, int dst_len);
-int  string_get_bytes(struct string_t *, int src_begin, int src_end, byte *dst,
-                      int dst_begin, int dst_len);
 
-bool string_equals(struct string_t *, struct object_t *obj);
-bool string_equals_ignore_case(struct string_t *, struct string_t *s);
+TLIB_AVAILABLE_IN_ALL
+bool tstring_istypeof_string(const tobject *o);
 
-int  string_compare_to(struct string_t *, char *s);
-int  string_compare_to_v2(struct string_t *, struct string_t *s);
-int  string_compare_to_ignore_case(struct string_t *, char *s);
-int  string_compare_to_ignore_case_v2(struct string_t *, struct string_t *s);
+TLIB_AVAILABLE_IN_ALL
+bool tstring_equals(const tstring *s, const tstring *ref);
 
-bool string_starts_with(struct string_t *, char *prefix);
-bool string_starts_with_v2(struct string_t *, char *prefix, int offset);
-bool string_starts_with_v3(struct string_t *, struct string_t *prefix);
-bool string_starts_with_v4(struct string_t *, struct string_t *prefix,
-                           int offset);
+TLIB_AVAILABLE_IN_ALL
+bool tstring_equals_ignorecase(const tstring *s, const tstring *ref);
 
-bool string_ends_with(struct string_t *, char *suffix);
-bool string_ends_with_v2(struct string_t *, struct string_t *suffix);
+TLIB_AVAILABLE_IN_ALL
+int  tstring_compare(const tstring *s, const char *str);
 
-int string_hash_code(struct string_t *);
+TLIB_AVAILABLE_IN_ALL
+int  tstring_compare_v2(const tstring *s, const tstring *str);
 
-int string_index_of(struct string_t *, int c);
-int string_index_of_v2(struct string_t *, int c, int from_index);
-int string_index_of_v3(struct string_t *, char *s);
-int string_index_of_v4(struct string_t *, char *s, int from_index);
-int string_index_of_v5(struct string_t *, struct string_t *s);
-int string_index_of_v6(struct string_t *, struct string_t *s, int from_index);
+TLIB_AVAILABLE_IN_ALL
+int tstring_compare_ignorecase(const tstring *s, const char *str);
 
-int string_last_index_of(struct string_t *, int c);
-int string_last_index_of_v2(struct string_t *, int c, int from_index);
-int string_last_index_of_v3(struct string_t *, char *s);
-int string_last_index_of_v4(struct string_t *, char *s, int from_index);
-int string_last_index_of_v5(struct string_t *, struct string_t *s);
-int string_last_index_of_v6(struct string_t *, struct string_t *s,
+TLIB_AVAILABLE_IN_ALL
+int tstring_compare_ignorecase_v2(const tstring *s, const tstring *str);
+
+TLIB_AVAILABLE_IN_ALL
+bool tstring_startswith(const tstring *s, const char *prefix);
+
+TLIB_AVAILABLE_IN_ALL
+bool tstring_startswith_v2(const tstring *s, const char *prefix, int offset);
+
+TLIB_AVAILABLE_IN_ALL
+bool tstring_startswith_v3(const tstring *s, const tstring *prefix);
+
+TLIB_AVAILABLE_IN_ALL
+bool tstring_startswith_v4(const tstring *s, const tstring *prefix, int offset);
+
+TLIB_AVAILABLE_IN_ALL
+bool tstring_endswith(const tstring *s, const char *suffix);
+
+TLIB_AVAILABLE_IN_ALL
+bool tstring_endswith_v2(const tstring *s, const tstring *suffix);
+
+TLIB_AVAILABLE_IN_ALL
+int tstring_hashcode(const tstring *s);
+
+TLIB_AVAILABLE_IN_ALL
+int tstring_indexof(const tstring *s, int c);
+
+TLIB_AVAILABLE_IN_ALL
+int tstring_indexof_v2(const tstring *s, int c, int from_index);
+
+TLIB_AVAILABLE_IN_ALL
+int tstring_indexof_v3(const tstring *s, const char *str);
+
+TLIB_AVAILABLE_IN_ALL
+int tstring_indexof_v4(const tstring *s, const char *str, int from_index);
+
+TLIB_AVAILABLE_IN_ALL
+int tstring_indexof_v5(const tstring *s, const tstring *str);
+
+TLIB_AVAILABLE_IN_ALL
+int tstring_indexof_v6(const tstring *s, const tstring *str, int from_index);
+
+TLIB_AVAILABLE_IN_ALL
+int tstring_last_indexof(const tstring *s, int c);
+
+TLIB_AVAILABLE_IN_ALL
+int tstring_last_indexof_v2(const tstring *s, int c, int from_index);
+
+TLIB_AVAILABLE_IN_ALL
+int tstring_last_indexof_v3(const tstring *s, const char *str);
+
+TLIB_AVAILABLE_IN_ALL
+int tstring_last_indexof_v4(const tstring *s, const char *str, int from_index);
+
+TLIB_AVAILABLE_IN_ALL
+int tstring_last_indexof_v5(const tstring *s, const tstring *str);
+
+TLIB_AVAILABLE_IN_ALL
+int tstring_last_indexof_v6(const tstring *s, const tstring *str,
                             int from_index);
 
-struct string_t *string_substring(struct string_t *, int begin_index);
-struct string_t *string_substring_v2(struct string_t *, int begin_index,
-                                     int end_index);
+TLIB_AVAILABLE_IN_ALL
+tstring* tstring_substring(const tstring *s, int begin_index);
 
-struct string_t *string_concat(struct string_t *, char *s);
-struct string_t *string_concat_v2(struct string_t *, struct string_t *s);
+TLIB_AVAILABLE_IN_ALL
+tstring* tstring_substring_v2(const tstring *s, int begin_index, int end_index);
 
-struct string_t *string_replace(struct string_t *, char oldchar, char newchar);
+TLIB_AVAILABLE_IN_ALL
+tstring* tstring_concat(const tstring *s, const char *str);
 
-bool string_contains(struct string_t *, char *s);
+TLIB_AVAILABLE_IN_ALL
+tstring* tstring_concat_v2(const tstring *s, const tstring *str);
 
-int string_split(struct string_t *, const char *delim,
-                 struct string_t **strings);
-int string_split_v2(struct string_t *, struct string_t *s,
-                    struct string_t **strings);
+TLIB_AVAILABLE_IN_ALL
+tstring* tstring_replace(const tstring *s, char oldchar, char newchar);
 
-struct string_t *string_to_lower_case(struct string_t *);
-struct string_t *string_to_upper_case(struct string_t *);
+TLIB_AVAILABLE_IN_ALL
+bool tstring_contains(const tstring *s, const char *str);
 
-struct string_t *string_trim(struct string_t *);
-struct string_t *string_strip(struct string_t *);
+TLIB_AVAILABLE_IN_ALL
+int tstring_count_ocurrences_of(const tstring *s, const char *str);
 
-bool string_is_blank(struct string_t *);
+TLIB_AVAILABLE_IN_ALL
+int tstring_split(const tstring *s, const char *delim, tstring *strings[]);
 
-int string_index_of_non_white_space(struct string_t *);
-int string_last_of_non_white_space(struct string_t *);
+TLIB_AVAILABLE_IN_ALL
+int tstring_split_v2(const tstring *s, const tstring *delim,
+                     tstring *strings[]);
 
-char *string_to_charp(struct string_t *);
+TLIB_AVAILABLE_IN_ALL
+tstring* tstring_to_lowercase(const tstring *s);
 
-struct string_t *string_repeat(struct string_t *, int count);
+TLIB_AVAILABLE_IN_ALL
+tstring* tstring_to_uppercase(const tstring *s);
 
-/* Static Methods */
+TLIB_AVAILABLE_IN_ALL
+tstring* tstring_trim(const tstring *s);
 
-struct string_t *string_format(const char *format, ...);
+TLIB_AVAILABLE_IN_ALL
+bool tstring_isblank(const tstring *s);
 
-struct string_t *string_value_of(char *);
-struct string_t *string_value_of_v2(char *, int offset, int count);
-struct string_t *string_value_of_v3(char);
-struct string_t *string_value_of_v4(int);
-struct string_t *string_value_of_v5(long);
-struct string_t *string_value_of_v6(float);
-struct string_t *string_value_of_v7(double);
-struct string_t *string_value_of_v8(struct object_t *);
+TLIB_AVAILABLE_IN_ALL
+const char* tstring_to_string(const tstring *s);
+
+TLIB_AVAILABLE_IN_ALL
+tstring* tstring_format(const char *format, ...);
+
+TLIB_AVAILABLE_IN_ALL
+tstring* tstring_value_of(const char *);
+
+TLIB_AVAILABLE_IN_ALL
+tstring* tstring_value_of_v2(const char *, int offset, int count);
+
+TLIB_AVAILABLE_IN_ALL
+tstring* tstring_value_of_v3(char);
+
+TLIB_AVAILABLE_IN_ALL
+tstring* tstring_value_of_v4(int);
+
+TLIB_AVAILABLE_IN_ALL
+tstring* tstring_value_of_v5(long);
+
+TLIB_AVAILABLE_IN_ALL
+tstring* tstring_value_of_v6(float);
+
+TLIB_AVAILABLE_IN_ALL
+tstring* tstring_value_of_v7(double);
+
+TLIB_AVAILABLE_IN_ALL
+tstring* tstring_value_of_v8(const tobject *o);
+
+TLIB_END_DECLS
 
 #endif

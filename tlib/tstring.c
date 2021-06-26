@@ -1,107 +1,147 @@
+/* TLIB - Library of useful and simple routines for C programming
+ * Copyright (C) 2021  Anderson Fonseca
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include "config.h"
+
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <ctype.h>
 
-#include "native_type.h"
-#include "object_t.h"
-#include "object_t_p.h"
-
-#define CLASS_TYPE "string"
-
-
-typedef struct {
-    object_t    object;
-    byte       *value;
-    int         length;
-    int         hash;
-    bool        hash_is_zero;
-    free_func_t parent_free_func;
-} string_t;
+#include "tobject.h"
+#include "tobject-p.h"
+#include "tstring.h"
 
 
-int __string_hash_code(void *this)
+struct tstring
 {
-    string_t *string = (string_t *) this;
-    size_t i;
-    int hc = 0;
+        tobject  parent;
+        char    *cstr;
+        int      length;
+        int      hash;
+        bool     hash_is_zero;
+};
 
-    if (hc == 0 && !string->hash_is_zero) {
-        for (i = 0; i < string->length; i++) {
-            hc = 31 * hc + (string->value[i] & 0xff);
+static int __tstring_hashcode(const void *this)
+{
+        tstring *s = (tstring *) this;
+        int h = s->hash;
+
+        if (h || s->hash_is_zero)
+                return h;
+
+        for (int i = 0; i < s->length; i++)
+                h = 31 * h + (s->cstr[i] & 0xff);
+
+        if (h == 0)
+                s->hash_is_zero = true;
+        else
+                s->hash = h;
+
+        return h;
+}
+
+static const char* __tstring_getclass(const void *this)
+{
+        tstring *s = (tstring *) this;
+
+        return strdup(s->parent.class_type);
+}
+
+static bool __tstring_equals(const void *this, const void *ref)
+{
+        if (this == ref) return true;
+
+        if (!tstring_istypeof_string(ref)) return false;
+
+        tstring *s1 = (tstring *) this;
+        tstring *s2 = (tstring *) ref;
+
+        if (s1->length != s2->length) return false;
+
+        return memcmp(s1->cstr, s2->cstr, s1->length) == 0;
+}
+
+static tobject* __tstring_clone(const void *this)
+{
+        tstring *s = (tstring *) this;
+        tstring *r = (tstring *) malloc(sizeof(tstring));
+
+        if (!r) return NULL;
+
+        memcpy(r, s, sizeof(tstring));
+
+        if (!(r->cstr = strdup(s->cstr))) return NULL;
+
+        return (tobject *) r;
+}
+
+static void __tstring_free(void *this)
+{
+        if (!this) return;
+
+        tstring *s = (tstring *) this;
+
+        if (s->cstr) free(s->cstr);
+
+        tobject_free((tobject *) s);
+}
+
+static const char* __tstring_to_string(const void *this)
+{
+        tstring *s = (tstring *) this;
+        return s->cstr;
+}
+
+static int __last_indexof(char *src, int src_count, const char *tgt,
+                          int tgt_count, int from_index)
+{
+        int roff = src_count - tgt_count;
+
+        if (roff < 0 || from_index < 0) return -1;
+
+        char *p = src + roff - from_index;
+
+        for (; p >= src; p--)
+        {
+                if (strncmp(p, tgt, tgt_count) == 0)
+                        return p - src;
         }
 
-        if (hc == 0)
-            string->hash_is_zero = true;
-        else
-            string->hash = hc;
-    }
-
-    return hc;
+        return -1;
 }
 
-bool __string_equals(void *this, void *obj)
+/* tstring_transform: convert string to upper or lower case. */
+static tstring* __tstring_transform(const tstring *s, int (*func)(int))
 {
-    if (this == obj) return true;
+        tstring *newstr = NULL;
+        char    *buf    = strdup(s->cstr);
 
-    string_t *s1 = (string_t *) this;
-    string_t *s2 = string_value_of_v8(obj);
-
-    if (!s2) return false;
-
-    if (s1->length != s2->length) return false;
-
-    if (memcmp(s1->value, s2->value, s1->length) != 0)
-        return false;
+        if (!buf) return NULL;
     
-    return true;
-}
+        for (int i = 0; buf[i] != '\0'; i++) 
+                buf[i] = func((unsigned char) buf[i]);
+        
+        if (!(newstr = tstring_new(buf))) free(buf);
 
-char *__string_get_class(void *this)
-{
-    string_t *string = (string_t *) this;
-
-    return strdup(string->object.class_type);
-}
-
-struct string_t *__string_clone(void *this)
-{
-    string_t *s1 = (string_t *) this;
-    string_t *s2 = (string_t *) malloc(sizeof(string_t));
-
-    if (!s2) return NULL;
-
-    memcpy(s2, s1, sizeof(string_t));
-
-    return s2;
-}
-
-void __string_free(void *this)
-{
-    string_t *string = (string_t *) this;
-
-    if (string->value) free(string->value);
-
-    string->parent_free_func((struct object *) string);
-}
-
-int __last_index_of(char *src, int src_count, char *tgt, int tgt_count,
-                    int from_index)
-{
-    int roff = src_count - tgt_count;
-
-    if (roff < 0 || from_index < 0) return -1;
-
-    char *p = src + roff - from_index;
-
-    for (; p >= src; p--) {
-        if (strncmp(p, tgt, tgt_count) == 0)
-            return p - src;
-    }
-
-    return -1;
+        return newstr;
 }
 
 /**
@@ -112,12 +152,23 @@ int __last_index_of(char *src, int src_count, char *tgt, int tgt_count,
  * @param[in] count   The count.
  * @param[in] length  The length.
  * 
- * @return {@code true} if the string object is out of bounds;
- *         {@code false} otherwise. 
+ * @returns {@code true} if the string object is out of bounds;
+ *          {@code false} otherwise. 
  */
-bool __check_bounds_off_count(int offset, int count, int length)
+static bool __check_bounds_off_count(int offset, int count, int length)
 {
-    return (offset < 0 || count < 0 || offset > length - count);
+        return (offset < 0 || count < 0 || offset > length - count);
+}
+
+/**
+ * Private allocation of a new string object.
+ * 
+ * @return On success, functions return a pointer to the string object
+ *         allocated. It returns NULL if insufficent memory was available.
+ */
+static tstring* __tstring_alloc()
+{
+    return (tstring *) calloc(1, sizeof(tstring));
 }
 
 /**
@@ -129,140 +180,98 @@ bool __check_bounds_off_count(int offset, int count, int length)
  * characters in their byte sequences including the NULL terminator
  * in the middle of the value.
  * 
- * @param[in] string  The string object parameter.
- * @param[in] value   The array that is the source of the caracteres.
- * @param[in] vlen    The size of value.
- * @param[in] off     The initial offset.
- * @param[in] len     The length.
+ * @param[in] v       The array that is the source of the caracteres.
+ * @param[in] vlen    The size of v.
+ * @param[in] offset  The initial offset.
+ * @param[in] len     The length to be copied.
  * 
  * @return {@code true} if the string object was initialized with success;
  *         {@code false} otherwise. 
  */
-bool __string_init(string_t *string, char *value, int vlen, int off, int len)
+static tstring* __tstring_new(const char *v, int vlen, int offset, int len)
 {
-    if (__check_bounds_off_count(off, len, vlen))
-        return false;
+        if (__check_bounds_off_count(offset, len, vlen))
+                return NULL;
 
-    string->value  = NULL;
-    string->length = 0;
+        tstring *s = __tstring_alloc();
+        if (!s) return NULL;
 
-    if (len > 0) {
-        string->length = len;
-        string->value  = (byte *) calloc(string->length + 1, sizeof(byte));
+        s->length = len > 0 ? len : 0;
+        s->cstr   = (char *) calloc(s->length + 1, sizeof(char));
 
-        if (!string->value) return false;
+        if (!s->cstr)
+        {
+                free(s);
+                return NULL;
+        }
 
-        memcpy(string->value, value, string->length);
-    }
+        memcpy(s->cstr, v + offset, s->length);
 
-    string->hash         = 0;
-    string->hash_is_zero = false;
+        tobject_init((tobject *) s);
 
-    if (!object_init((struct object_t *) string)) goto error;
+        strcpy(s->parent.class_type, TLIB_CLASS_TSTRING);
 
-    string->parent_free_func = string->object.free_func;
-    strcpy(string->object.class_type, CLASS_TYPE);
+        s->parent.vtable->tobject_hash      = __tstring_hashcode;
+        s->parent.vtable->tobject_equals    = __tstring_equals;
+        s->parent.vtable->tobject_getclass  = __tstring_getclass;
+        s->parent.vtable->tobject_clone     = __tstring_clone;
+        s->parent.vtable->tobject_free      = __tstring_free;
+        s->parent.vtable->tobject_to_string = __tstring_to_string;
 
-    string->object.hash_code_func = __string_hash_code;
-    string->object.equals_func    = __string_equals;
-    string->object.get_class_func = __string_get_class;
-    string->object.clone_of_func  = __string_clone;
-    string->object.free_func      = __string_free;
-
-    return true;
-
-error:
-    if (string->value) free(string->value);
-
-    return false;
+        return s;
 }
 
 /**
- * Constructs a new string object.
- * 
- * @return On success, functions return a pointer to the string object
- *         allocated. It returns NULL if insufficent memory was available.
- */
-string_t *string_new()
-{
-    return (string_t *) calloc(1, sizeof(string_t));
-}
-
-/**
- * Allocates a new {@code string_t} so that it represents the sequence of
+ * Creates a new {@code string_t} that represents the sequence of
  * characters currently contained in the character array argument. The
  * contents of the character array are copied; subsequent modification of
  * the character array does not affect the newly created string.
  * 
- * @param[in] string  The {@code string_t} object parameter.
- * @param[in] s       The initial value of the string.
+ * @param[in] s  The initial value of the string.
  * 
- * @return {@code true} if the string object was initialized with success;
- *         {@code false} otherwise. 
+ * @return On success, it returns a pointer to the string object allocated or
+ *         NULL if insufficent memory.
  */
-bool string_init(struct string_t *string, char *s)
+tstring* tstring_new(const char *s)
 {
-    return __string_init(string, s, strlen(s), 0, strlen(s));
+        return __tstring_new(s, strlen(s), 0, strlen(s));
 }
 
 /**
- * Initializes a newly created {@code string_t} object so that it represents
- * the same sequence of characters as the argument; in other words, the
- * newly created string is a copy of the argument string.
+ * Creates a newly {@code string_t} object so that it represents the same
+ * sequence of characters as the argument; in other words, the newly created
+ * string is a copy of the argument string.
  * 
- * @param[in] string   The {@code string_t} object parameter.
- * @param[in] original A {@code string_t} orignal parameter.
+ * @param[in] s A {@code string_t} orignal parameter.
  * 
- * @return {@code true} if the string object was initialized with success;
- *         {@code false} otherwise. 
+ * @return On success, it returns a pointer to the string object allocated or
+ *         NULL if insufficent memory.
  */
-bool string_init_v2(string_t *string, string_t *original)
+tstring* tstring_new_v2(const tstring *s)
 {
-    memcpy(string, original, sizeof(string_t));
+        return __tstring_new(s->cstr, s->length, 0, s->length);
 }
 
 /**
- * Allocates a new {@code string_t} that contains characters from a subarray
+ * Creates a new {@code string_t} that contains characters from a subarray
  * of the character array argument. The contents of the subarray are copied;
  * subsequent modification of the character array does not affect the newly
  * created string.
  * 
- * @param[in] string  The {@code string_t} object parameter.
  * @param[in] s       Array that is the source of characters.
  * @param[in] offset  The initial offset.
  * @param[in] count   The length of the subarray.
  * 
- * @return {@code true} if the string object was initialized with success;
- *         {@code false} otherwise. 
+ * @return On success, it returns a pointer to the string object allocated or
+ *         NULL if insufficent memory.
  */
-bool string_init_v3(string_t *string, char *s, int offset, int count)
+tstring* tstring_new_v3(const char *s, int offset, int count)
 {
-    return __string_init(string, s, strlen(s), offset, count);
+        return __tstring_new(s, strlen(s), offset, count);
 }
 
 /**
- * Allocates a new {@code string_t} that contains bytes from a subarray
- * of the byte array argument. The contents of the subarray are copied;
- * subsequent modification of the byte array does not affect the newly
- * created string.
- * 
- * @param[in] string     The {@code string_t} object parameter.
- * @param[in] bytes      Array that is the source of bytes.
- * @param[in] bytes_len  The length of bytes.
- * @param[in] offset     The initial offset.
- * @param[in] count      The length of the subarray.
- * 
- * @return {@code true} if the string object was initialized with success;
- *         {@code false} otherwise. 
- */
-bool string_init_v4(struct string_t *string, byte *bytes, int bytes_len,
-                    int offset, int count)
-{
-    return __string_init(string, (char *) bytes, bytes_len, offset, count);
-}
-
-/**
- * Initializes a newly created {@code string_t} object so that it represents
+ * Creates a new {@code string_t} object so that it represents
  * an empty character sequence.  Note that use of this constructor is
  * unnecessary since strings_t is immutable.
  * 
@@ -271,9 +280,9 @@ bool string_init_v4(struct string_t *string, byte *bytes, int bytes_len,
  * @return {@code true} if the string object was initialized with success;
  *         {@code false} otherwise. 
  */
-bool string_init_v5(string_t *string)
+tstring* tstring_new_v4()
 {
-    return __string_init(string, NULL, 0, 0, 0);
+        return __tstring_new("", 0, 0, 0);
 }
 
 /**
@@ -283,15 +292,24 @@ bool string_init_v5(string_t *string)
  * Passing in a NULL pointer in {@code string} will make this function return
  * immediately with no action.
  * 
- * @param[in] string  The {@code string_t} object parameter.
- * 
- * @return none.
+ * @param[in] s  The {@code string_t} object parameter.
  */
-void string_free(string_t *string)
+void tstring_free(tstring *s)
 {
-    if (!string) return;
+        if (!s) return;
+        s->parent.vtable->tobject_free(s);
+}
 
-    string->object.free_func(string);
+/**
+ * Create an exact copy of the string.
+ * 
+ * @param[in] s  The {@code string_t} object parameter.
+ * 
+ * @returns a copy of the string. 
+ */
+tstring* tstring_clone(tstring *s)
+{
+        return (tstring *) s->parent.vtable->tobject_clone(s);
 }
 
 /**
@@ -299,12 +317,12 @@ void string_free(string_t *string)
  * 
  * @param[in] string  The {@code string_t} object parameter.
  * 
- * @return the length of the sequence of characters represented by this
- *         object. 
+ * @returns the length of the sequence of characters represented by this
+ *          object. 
  */
-int string_length(string_t *string)
+int tstring_length(const tstring *s)
 {
-    return string->length;
+        return s->length;
 }
 
 /**
@@ -312,12 +330,12 @@ int string_length(string_t *string)
  * 
  * @param[in] string  The {@code string_t} object parameter.
  * 
- * @return {@code true} if {@link #length()} is {@code 0}, otherwise
- *         {@code false}
+ * @returns {@code true} if {@link #length()} is {@code 0}, otherwise
+ *          {@code false}
  */
-bool string_is_empty(string_t *string)
+bool tstring_isempty(const tstring *s)
 {
-    return string->length == 0;
+        return s->length == 0;
 }
 
 /**
@@ -326,7 +344,7 @@ bool string_is_empty(string_t *string)
  * the sequence is at index {@code 0}, the next at index {@code 1}, and so
  * on, as for array indexing.
  * 
- * @param[in] string  The {@code string_t} object parameter.
+ * @param[in] s       The {@code string_t} object parameter.
  * @param[in] index   The index of the {@code char} value. If index is less
  *                    than {@code 0}, the first position is used and if index
  *                    is greater then {@code length() - 1}, the last position
@@ -335,112 +353,126 @@ bool string_is_empty(string_t *string)
  * @return the {@code char} value at the specified index of this string.
  *             The first {@code char} value is at index {@code 0}.
  */
-char string_char_at(string_t *string, int index)
+char tstring_at(const tstring *s, int index)
 {
-    if (index < 0)
-        index = 0;
-    else if (index >= string->length)
-        index = string->length - 1;
+        if (index < 0)
+                index = 0;
+        else if (index >= s->length)
+                index = s->length - 1;
     
-    return string->value[index];
+        return s->cstr[index];
 }
 
 /**
  * Copy a sequence of characters from a subarray to {@code dst}. The copy is
  * done until the length is reached or a '\0' is found. Therefore, if in the
  * middle of the string there is a '\0', the characters copied from
- * {@code src_begin} until this '\0'.
+ * {@code src_begin} until this '\0'. The string placed in dst will not be
+ * null-terminated.
  * 
- * @param[in] string     The {@code string_t} object parameter.
+ * @param[in] s          The {@code string_t} object parameter.
  * @param[in] src_begin  The source offset.
  * @param[in] src_end    The length of the source.
  * @param[in] dst        The destination buffer.
  * @param[in] dst_begin  The destination offset.
  * @param[in] dst_len    The length of the destination.
  * 
- * @return the number of characters copied or -1 if the index is out of bounds.
+ * @returns the number of characters copied or -1 if the index is out of bounds.
  */
-int string_get_chars(string_t *string, int src_begin, int src_end, char *dst,
+int tstring_getchars(const tstring *s, int src_begin, int src_end, char *dst,
                      int dst_begin, int dst_len)
 {
-    if (__check_bounds_off_count(src_begin, src_end, dst_len)) return -1;
+        if (__check_bounds_off_count(src_begin, src_end, dst_len))
+                return -1;
 
-    int len = src_end - src_begin;
+        int len = src_end - src_begin;
+        if (len == 0) return 0;
 
-    if (len == 0) return 0;
+        int slen = strlen(s->cstr + src_begin);
 
-    strcpy(dst + dst_begin, string->value + src_begin);
+        /* If len is greater than slen, it means there is a '\0' in the middle
+         * of the source string.
+         */
+        len = len > slen ? slen : len;
 
-    return len;
+        memcpy(dst + dst_begin, s->cstr + src_begin, len);
+
+        return len;
 }
 
 /**
- * Copy a sequence of bytes from a subarray to {@code dst}. The copy is
- * done until the length is reached and can include as many as '\0' exists
- * in the middle of the sequence of bytes.
+ * Validates if the specified object is a string type.
  * 
- * @param[in] string     The {@code string_t} object parameter.
- * @param[in] src_begin  The source offset.
- * @param[in] src_end    The length of the source.
- * @param[in] dst        The destination buffer.
- * @param[in] dst_begin  The destination offset.
- * @param[in] dst_len    The length of the destination.
+ * @param[in] s  The {@code tobject} parameter.
  * 
- * @return the number of characters copied or -1 if the index is out of bounds.
+ * @returns {@code true} if the given object represents a {@code tstring}
+ *          equivalent, {@code false} otherwise.
  */
-int string_get_bytes(string_t *string, int src_begin, int src_end, byte *dst,
-                     int dst_begin, int dst_len)
+bool tstring_istypeof_string(const tobject *o)
 {
-    if (__check_bounds_off_count(src_begin, src_end, dst_len)) return -1;
+        if (!tobject_istypeof_object(o))
+                return false;
 
-    int len = src_end - src_begin;
-
-    if (len == 0) return 0;
-
-    memcpy(dst + dst_begin, string->value + src_begin, len);
-
-    return len;
+        return strcmp(TLIB_CLASS_TSTRING, o->class_type) == 0;
 }
 
 /**
- * Compares this string to the specified object. The result is {@code true}
- * if and only if the argument is not {@code NULL} and is a {@code string_t}
- * object that represents the same sequence of characters as this object.
+ * Compares this string to the specified string. The result is {@code true}
+ * if and only if the argument is not {@code NULL} and is a {@code tstring}
+ * object that represents the same sequence of characters as this string.
  * 
- * @param[in] string  The {@code string_t} object parameter.
- * @param[in] obj     The object to compare this {@code string_t} against.
+ * @param[in] s    The {@code tstring} object parameter.
+ * @param[in] obj  The object to compare this {@code string_t} against.
  * 
- * @return {@code true} if the given object represents a {@code String}
- *         equivalent to this string, {@code false} otherwise
+ * @returns {@code true} if the given object represents a {@code String}
+ *          equivalent to this string, {@code false} otherwise.
  */
-bool string_equals(string_t *string, struct object_t *obj)
+bool tstring_equals(const tstring *s, const tstring *ref)
 {
-    string->object.equals_func(string, obj);
+        return s->parent.vtable->tobject_equals(s, ref);
 }
 
 /**
- * Compares this {@code string_t} to another {@code string_t}, ignoring case
+ * Compares this {@code tstring} to another {@code tstring}, ignoring case
  * considerations. Two strings are considered equal ignoring case if they
  * are of the same length and the corresponding characters in the two strings
  * are equal ignoring case.
  * 
- * @param[in] string  The {@code string_t} object parameter.
- * @param[in] s       The {@code string_t} to compare this {@code string_t}
- *                    against
+ * @param[in] s    The {@code tstring} object parameter.
+ * @param[in] ref  The {@code tstring} to compare this {@code string_t}
+ *                 against
  * 
- * @return {@code true} if the arguments are not {@code NULL} and they
- *         represents an equivalent {@code string_t} ignoring case; {@code
- *         false} otherwise.
+ * @returns {@code true} if the arguments are not {@code NULL} and they
+ *          represents an equivalent {@code tstring} ignoring case; {@code
+ *          false} otherwise.
  */
-bool string_equals_ignore_case(string_t *string, string_t *s)
+bool tstring_equals_ignorecase(const tstring *s, const tstring *ref)
 {
-    if (string == s) return true;
+        if (s == ref)   return true;
+        if (!s || !ref) return false;
 
-    if (!s) return false;
+        if (s->length != ref->length) return false;
 
-    if (string->length != s->length) return false;
+        return strcasecmp(s->cstr, ref->cstr) == 0;
+}
 
-    return strcasecmp((char *)string->value, (char *) s->value) == 0;
+/**
+ * Compares the two strings {@code tstring} and {@code s2}. It returns an
+ * integer less than, equal to, or greater than zero if {@code string} is
+ * found, respectively, to be less than, to match, or be greater than {@code s}.
+ * 
+ * @param[in] s   The {@code tstring} object parameter.
+ * @param[in] s2  The string to be compared.
+ * 
+ * @returns the value {@code 0} if the argument {@code s2} is equal to
+ *          {@code string}; a value less than {@code 0} if this {@code string}
+ *          is less than the {@code string} argument; and a value greater than
+ *          {@code 0} if this {@code string} is greater than the string
+ *          argument.
+ */
+int tstring_compare(const tstring *s, const char *str)
+{
+        return strcmp(s->cstr, str);
 }
 
 /**
@@ -448,335 +480,318 @@ bool string_equals_ignore_case(string_t *string, string_t *s)
  * integer less than, equal to, or greater than zero if {@code string} is
  * found, respectively, to be less than, to match, or be greater than {@code s}.
  * 
- * @param[in] string  The {@code string_t} object parameter.
- * @param[in] s       The string to be compared.
+ * @param[in] s   The {@code string_t} object parameter.
+ * @param[in] s2  The string to be compared.
  * 
- * @return the value {@code 0} if the argument {@code s} is equal to
- *         {@code string}; a value less than {@code 0} if this {@code string}
- *         is less than the {@code string} argument; and a value greater than
- *         {@code 0} if this {@code string} is greater than the string argument.
+ * @returns the value {@code 0} if the argument {@code s} is equal to
+ *          {@code string}; a value less than {@code 0} if this {@code string}
+ *          is less than the {@code string} argument; and a value greater than
+ *          {@code 0} if this {@code string} is greater than the string
+ *          argument.
  */
-int string_compare_to(string_t *string, char *s)
+int tstring_compare_v2(const tstring *s, const tstring *str)
 {
-    return strcmp((char *) string->value, s);
-}
-
-/**
- * Compares the two strings {@code string} and {@code s}. It returns an
- * integer less than, equal to, or greater than zero if {@code string} is
- * found, respectively, to be less than, to match, or be greater than {@code s}.
- * 
- * @param[in] string  The {@code string_t} object parameter.
- * @param[in] s       The string to be compared.
- * 
- * @return the value {@code 0} if the argument {@code s} is equal to
- *         {@code string}; a value less than {@code 0} if this {@code string}
- *         is less than the {@code string} argument; and a value greater than
- *         {@code 0} if this {@code string} is greater than the string argument.
- */
-int string_compare_to_v2(string_t *string, string_t *s)
-{
-    return strcmp((char *) string->value, (char *) s->value);
+        return strcmp(s->cstr, str->cstr);
 }
 
 /**
  * Performs a byte-by-byte comparison of the strings {@code string} and
- * {@code s}. It returns an integer less than, equal to, or greater than zero if
- * {@code string} is found, respectively, to be less than, to match, or be
- * greater than {@code s}.
+ * {@code s2}. It returns an integer less than, equal to, or greater than zero
+ * if {@code string} is found, respectively, to be less than, to match, or be
+ * greater than {@code s2}.
  * 
- * @param[in] string  The {@code string_t} object parameter.
- * @param[in] s       The string to be compared.
+ * @param[in] s   The {@code string_t} object parameter.
+ * @param[in] s2  The string to be compared.
  * 
- * @return the value {@code 0} if the argument {@code s} is equal to
- *         {@code string}; a value less than {@code 0} if this {@code string}
- *         is less than the {@code string} argument; and a value greater than
- *         {@code 0} if this {@code string} is greater than the string argument.
+ * @returns the value {@code 0} if the argument {@code s} is equal to
+ *          {@code string}; a value less than {@code 0} if this {@code string}
+ *          is less than the {@code string} argument; and a value greater than
+ *          {@code 0} if this {@code string} is greater than the string
+ *          argument.
  */
-int string_compare_to_ignore_case(string_t *string, char *s)
+int tstring_compare_ignorecase(const tstring *s, const char *str)
 {
-    return strcasecmp((char *) string->value, s);
+        return strcasecmp(s->cstr, str);
 }
 
 /**
  * Performs a byte-by-byte comparison of the strings {@code string} and
- * {@code s}. It returns an integer less than, equal to, or greater than zero if
- * {@code string} is found, respectively, to be less than, to match, or be
- * greater than {@code s}.
+ * {@code s2}. It returns an integer less than, equal to, or greater than zero
+ * if {@code string} is found, respectively, to be less than, to match, or be
+ * greater than {@code s2}.
  * 
- * @param[in] string  The {@code string_t} object parameter.
- * @param[in] s       The string to be compared.
+ * @param[in] s   The {@code tstring} object parameter.
+ * @param[in] s2  The string to be compared.
  * 
- * @return the value {@code 0} if the argument {@code s} is equal to
- *         {@code string}; a value less than {@code 0} if this {@code string}
- *         is less than the {@code string} argument; and a value greater than
- *         {@code 0} if this {@code string} is greater than the string argument.
+ * @returns the value {@code 0} if the argument {@code s} is equal to
+ *          {@code string}; a value less than {@code 0} if this {@code string}
+ *          is less than the {@code string} argument; and a value greater than
+ *          {@code 0} if this {@code string} is greater than the string
+ *          argument.
  */
-int string_compare_to_ignore_case_v2(string_t *string, string_t *s)
+int tstring_compare_ignorecase_v2(const tstring *s, const tstring *str)
 {
-    return strcasecmp((char *) string->value, (char *) s->value);
+        return strcasecmp(s->cstr, str->cstr);
 }
 
 /**
  * Tests if {@code string} starts with the specified prefix.
  * 
- * @param[in] string  The {@code string_t} object parameter.
+ * @param[in] s       The {@code tstring} object parameter.
  * @param[in] prefix  The prefix.
  * 
- * @return {@code true} if the character sequence represented by the
- *         argument is a prefix of the character sequence represented by
- *         string; {@code false} otherwise.
+ * @returns {@code true} if the character sequence represented by the
+ *          argument is a prefix of the character sequence represented by
+ *          string; {@code false} otherwise.
  */
-bool string_starts_with(string_t *string, char *prefix)
+bool tstring_startswith(const tstring *s, const char *prefix)
 {
-    return strncmp((char *) string->value, prefix, strlen(prefix)) == 0;
+        return strncmp(s->cstr, prefix, strlen(prefix)) == 0;
 }
 
 /**
  * Tests if the substring of {@code string} beginning at the specified index
  * starts with the specified prefix.
  * 
- * @param[in] string  The {@code string_t} object parameter.
+ * @param[in] s       The {@code string_t} object parameter.
  * @param[in] prefix  The prefix.
  * @param[in] offset  Where to begin looking in this string.
  * 
- * @return {@code true} if the character sequence represented by the
- *         argument is a prefix of the substring of this object starting
- *         at index {@code offset}; {@code false} otherwise.
+ * @returns {@code true} if the character sequence represented by the
+ *          argument is a prefix of the substring of this object starting
+ *          at index {@code offset}; {@code false} otherwise.
  */
-bool string_starts_with_v2(string_t *string, char *prefix, int offset)
+bool tstring_startswith_v2(const tstring *s, const char *prefix, int offset)
 {
-    if (offset < 0 || offset > string->length - strlen(prefix))
-        return false;
+        if (offset < 0 || offset > (s->length - (int) strlen(prefix)))
+                return false;
     
-    return strncmp((char *)string->value + offset, prefix, strlen(prefix)) == 0;
+        return strncmp(s->cstr + offset, prefix, strlen(prefix)) == 0;
 }
 
 /**
  * Tests if {@code string} starts with the specified prefix.
  * 
- * @param[in] string  The {@code string_t} object parameter.
+ * @param[in] s       The {@code string_t} object parameter.
  * @param[in] prefix  The prefix.
  * 
- * @return {@code true} if the character sequence represented by the
- *         argument is a prefix of the character sequence represented by
- *         string; {@code false} otherwise.
+ * @returns {@code true} if the character sequence represented by the
+ *          argument is a prefix of the character sequence represented by
+ *          string; {@code false} otherwise.
  */
-bool string_starts_with_v3(string_t *string, string_t *prefix)
+bool tstring_startswith_v3(const tstring *s, const tstring *prefix)
 {
-    return strncmp((char *)string->value, (char *)prefix->value,
-                   prefix->length) == 0;
+        return strncmp(s->cstr, prefix->cstr, prefix->length) == 0;
 }
 
 /**
  * Tests if the substring of {@code string} beginning at the specified index
  * starts with the specified prefix.
  * 
- * @param[in] string  The {@code string_t} object parameter.
+ * @param[in] s       The {@code string_t} object parameter.
  * @param[in] prefix  The prefix.
  * @param[in] offset  Where to begin looking in this string.
  * 
- * @return {@code true} if the character sequence represented by the
- *         argument is a prefix of the substring of this object starting
- *         at index {@code offset}; {@code false} otherwise.
+ * @returns {@code true} if the character sequence represented by the
+ *          argument is a prefix of the substring of this object starting
+ *          at index {@code offset}; {@code false} otherwise.
  */
-bool string_starts_with_v4(string_t *string, string_t *prefix, int offset)
+bool tstring_startswith_v4(const tstring *s, const tstring *prefix, int offset)
 {
-    return strncmp((char *)string->value + offset, (char *)prefix->value,
-                   prefix->length) == 0;
+        return strncmp(s->cstr + offset, prefix->cstr, prefix->length) == 0;
 }
 
 /**
  * Tests if {@code string} ends with the specified suffix.
  * 
- * @param[in] string  The {@code string_t} object parameter.
- * @param[in] prefix  The prefix.
+ * @param[in] s       The {@code tstring} object parameter.
+ * @param[in] suffix  The suffix.
  * 
- * @return {@code true} if the character sequence represented by the
- *         argument is a prefix of the character sequence represented by
- *         string; {@code false} otherwise.
+ * @returns {@code true} if the character sequence represented by the
+ *          argument is a suffix of the character sequence represented by
+ *          string; {@code false} otherwise.
  */
-bool string_ends_with(string_t *string, char *suffix)
+bool tstring_endswith(const tstring *s, const char *suffix)
 {
-    int index = string->length - strlen(suffix);
+        int index = s->length - strlen(suffix);
 
-    if (index < 0) return false;
+        if (index < 0) return false;
 
-    return strcmp((char *)string->value + index, suffix) == 0;
+        return strcmp(s->cstr + index, suffix) == 0;
 }
 
 /**
  * Tests if {@code string} ends with the specified suffix.
  * 
- * @param[in] string  The {@code string_t} object parameter.
- * @param[in] prefix  The prefix.
+ * @param[in] s       The {@code string_t} object parameter.
+ * @param[in] suffix  The suffix.
  * 
- * @return {@code true} if the character sequence represented by the
- *         argument is a prefix of the character sequence represented by
- *         string; {@code false} otherwise.
+ * @returns {@code true} if the character sequence represented by the
+ *          argument is a suffix of the character sequence represented by
+ *          string; {@code false} otherwise.
  */
-bool string_ends_with_v2(string_t *string, string_t *suffix)
+bool tstring_endswith_v2(const tstring *s, const tstring *suffix)
 {
-    int index = string->length - suffix->length;
+        int index = s->length - suffix->length;
 
-    if (index < 0) return false;
+        if (index < 0) return false;
 
-    return strcmp((char *)string->value + index, (char *)suffix->value) == 0;
+        return strcmp(s->cstr + index, suffix->cstr) == 0;
 }
 
 /**
  * Returns a hash code for this string.
  * 
- * @param[in] string  The {@code string_t} object parameter.
+ * @param[in] s  The {@code string_t} object parameter.
  * 
- * @return a hash code value for this object.
+ * @returns a hash code value for this object.
  */
-int string_hash_code(string_t *string)
+int tstring_hashcode(const tstring *s)
 {
-    return string->object.hash_code_func(string);
+        return s->parent.vtable->tobject_hash(s);
 }
 
 /**
- * Returns the index within this string of the first occurrence ofthe specified
+ * Returns the index within this string of the first occurrence of the specified
  * character.
  * 
- * @param[in] string  The {@code string_t} object parameter.
- * @param[in] c       A character.
+ * @param[in] s  The {@code string_t} object parameter.
+ * @param[in] c  A character.
  * 
- * @return the index of the first occurrence of the character in the character
- *         sequence represented by this object, or {@code -1} if the character
- *         does not occur.
+ * @returns the index of the first occurrence of the character in the character
+ *          sequence represented by this object, or {@code -1} if the character
+ *          does not occur.
  */
-int string_index_of(string_t *string, int c)
+int tstring_indexof(const tstring *s, int c)
 {
-    char *p = index((char *)string->value, c);
+        char *p = index(s->cstr, c);
 
-    return p ? p - string->value : -1;
+        return p ? p - s->cstr : -1;
 }
 
 /**
  * Returns the index within this string of the first occurrence of the
  * specified character, starting the search at the specified index.
  * 
- * @param[in] string      The {@code string_t} object parameter.
+ * @param[in] s           The {@code string_t} object parameter.
  * @param[in] c           A character.
  * @param[in] from_index  The index to start the search from.
  * 
- * @return the index of the first occurrence of the character in the character
- *         sequence represented by this object that is greater than or equal to
- *         {@code from_index}, or {@code -1} if the character does not occur.
+ * @returns the index of the first occurrence of the character in the character
+ *          sequence represented by this object that is greater than or equal to
+ *          {@code from_index}, or {@code -1} if the character does not occur.
  */
-int string_index_of_v2(string_t *string, int c, int from_index)
+int tstring_indexof_v2(const tstring *s, int c, int from_index)
 {
-    if (from_index < 0 || from_index >= string->length)
-        return -1;
-    
-    char *p = index((char *)string->value + from_index, c);
+        if (from_index < 0 || from_index >= s->length)
+                return -1;
 
-    return p ? p - string->value : -1;
+        char *p = index(s->cstr + from_index, c);
+
+        return p ? p - s->cstr : -1;
 }
 
 /**
  * Returns the index within this string of the first occurrence of the
  * specified substring.
  * 
- * @param[in] string  The {@code string_t} object parameter.
- * @param[in] s       The substring to search for.
+ * @param[in] s   The {@code string_t} object parameter.
+ * @param[in] ps  The primitive substring to search for.
  * 
- * @return the index of the first occurrence of the specified substring, or
- *         {@code -1} if there is no such occurrence.
+ * @returns the index of the first occurrence of the specified substring, or
+ *          {@code -1} if there is no such occurrence.
  */
-int string_index_of_v3(string_t *string, char *s)
+int tstring_indexof_v3(const tstring *s, const char *str)
 {
-    char *p = strstr((char *)string->value, s);
+    char *p = strstr(s->cstr, str);
 
-    return p ? p - string->value : -1;
+    return p ? p - s->cstr : -1;
 }
 
 /**
  * Returns the index within this string of the first occurrence of the
  * specified substring, starting at the specified index.
  * 
- * @param[in] string      The {@code string_t} object parameter.
- * @param[in] s           The substring to search for.
+ * @param[in] s           The {@code string_t} object parameter.
+ * @param[in] str         The substring to search for.
  * @param[in] from_index  The index from which to start the search.
  * 
- * @return the index of the first occurrence of the specified substring,
- *         starting at the specified index, or {@code -1} if there is no
- *         such occurrence.
+ * @returns the index of the first occurrence of the specified substring,
+ *          starting at the specified index, or {@code -1} if there is no
+ *          such occurrence.
  */
-int string_index_of_v4(string_t *string, char *s, int from_index)
+int tstring_indexof_v4(const tstring *s, const char *str, int from_index)
 {
-    if (from_index < 0 || from_index >= string->length)
-        return -1;
+        if (from_index < 0 || from_index >= s->length)
+                return -1;
 
-    char *p = strstr((char *)string->value + from_index, s);
+        char *p = strstr(s->cstr + from_index, str);
 
-    return p ? p - string->value : -1;
+        return p ? p - s->cstr : -1;
 }
 
 /**
  * Returns the index within this string of the first occurrence of the
  * specified substring.
  * 
- * @param[in] string  The {@code string_t} object parameter.
- * @param[in] s       The substring to search for.
+ * @param[in] s    The {@code string_t} object parameter.
+ * @param[in] str  The substring to search for.
  * 
- * @return the index of the first occurrence of the specified substring, or
- *         {@code -1} if there is no such occurrence.
+ * @returns the index of the first occurrence of the specified substring, or
+ *          {@code -1} if there is no such occurrence.
  */
-int string_index_of_v5(string_t *string, string_t *s)
+int tstring_indexof_v5(const tstring *s, const tstring *str)
 {
-    char *p = strstr((char *)string->value, (char *)s->value);
+        char *p = strstr((char *)str->cstr, str->cstr);
 
-    return p ? p - string->value : -1;
+        return p ? p - s->cstr : -1;
 }
 
 /**
  * Returns the index within this string of the first occurrence of the
  * specified substring, starting at the specified index.
  * 
- * @param[in] string      The {@code string_t} object parameter.
- * @param[in] s           The substring to search for.
+ * @param[in] s           The {@code string_t} object parameter.
+ * @param[in] str         The substring to search for.
  * @param[in] from_index  The index from which to start the search.
  * 
- * @return the index of the first occurrence of the specified substring,
- *         starting at the specified index, or {@code -1} if there is no
- *         such occurrence.
+ * @returns the index of the first occurrence of the specified substring,
+ *          starting at the specified index, or {@code -1} if there is no
+ *          such occurrence.
  */
-int string_index_of_v6(string_t *string, string_t *s, int from_index)
+int tstring_indexof_v6(const tstring *s, const tstring *str, int from_index)
 {
-    if (from_index < 0 || from_index >= string->length)
-        return -1;
+        if (from_index < 0 || from_index >= s->length)
+                return -1;
 
-    char *p = strstr((char *)string->value + from_index, (char *)s->value);
+        char *p = strstr(s->cstr + from_index, str->cstr);
 
-    return p ? p - string->value : -1;
+        return p ? p - s->cstr : -1;
 }
 
 /**
  * Returns the index within this string of the last occurrence of
  * the specified character.
  * 
- * @param[in] string  The {@code string_t} object parameter.
- * @param[in] c       A character.
+ * @param[in] s  The {@code string_t} object parameter.
+ * @param[in] c  A character.
  * 
- * @return the index of the last occurrence of the character in the
- *         character sequence represented by this object, or
- *         {@code -1} if the character does not occur.
+ * @returns the index of the last occurrence of the character in the
+ *          character sequence represented by this object, or
+ *          {@code -1} if the character does not occur.
  */
-int string_last_index_of(string_t *string, int c)
+int tstring_last_indexof(const tstring *s, int c)
 {
-    char *p = rindex((char *)string->value, c);
+        char *p = rindex(s->cstr, c);
 
-    return p ? p - string->value : -1;
+        return p ? p - s->cstr : -1;
 }
 
 /**
  * Returns the index within this string of the last occurrence of the specified
  * character, searching backward starting at the specified index.
  * 
- * @param[in] string      The {@code string_t} object parameter.
+ * @param[in] s          The {@code string_t} object parameter.
  * @param[in] c           A character.
  * @param[in] from_index  The index to start the search from. There is no
  *                        restriction on the value of {@code from_index}. If it
@@ -786,36 +801,34 @@ int string_last_index_of(string_t *string, int c)
  *                        be searched. If it is negative, it has the same effect
  *                        as if it were -1: -1 is returned.
  * 
- * @return the index of the last occurrence of the character in the character
- *         sequence represented by this object that is less than or equal to
- *         {@code from_index}, or {@code -1} if the character does not occur
- *         before that point 
+ * @returns the index of the last occurrence of the character in the character
+ *          sequence represented by this object that is less than or equal to
+ *          {@code from_index}, or {@code -1} if the character does not occur
+ *          before that point 
  */
-int string_last_index_of_v2(string_t *string, int c, int from_index)
+int tstring_last_indexof_v2(const tstring *s, int c, int from_index)
 {
-    int offset = from_index >= string->value ? string->value - 1 : from_index;
+        int offset = from_index >= s->length ? s->length - 1 : from_index;
 
-    for (; offset >= 0; offset--) {
-        if (string->value[offset] == (byte)c)
-            return offset;
-    }
+        for (; offset >= 0; offset--)
+                if (s->cstr[offset] == c) return offset;
 
-    return -1;
+        return -1;
 }
 
 /**
  * Returns the index within this string of the last occurrence of the
  * specified substring. 
  * 
- * @param[in] string  The {@code string_t} object parameter.
- * @param[in] s       The substring to search for.
+ * @param[in] s    The {@code string_t} object parameter.
+ * @param[in] str  The substring to search for.
  * 
- * @return the index of the last occurrence of the specified substring, or
- *         {@code -1} if there is no such occurrence.
+ * @returns the index of the last occurrence of the specified substring, or
+ *          {@code -1} if there is no such occurrence.
  */
-int string_last_index_of_v3(string_t *string, char *s)
+int tstring_last_indexof_v3(const tstring *s, const char *str)
 {
-    return __last_index_of(string->value, string->length, s, strlen(s), 0);
+        return __last_indexof(s->cstr, s->length, str, strlen(str), 0);
 }
 
 /**
@@ -830,44 +843,44 @@ int string_last_index_of_v3(string_t *string, char *s)
  *         searching backward from the specified index, or {@code -1} if there
  *         is no such occurrence.
  */
-int string_last_index_of_v4(string_t *string, char *s, int from_index)
+int tstring_last_indexof_v4(const tstring *s, const char *str, int from_index)
 {
-    return __last_index_of(string->value, string->length, s, strlen(s),
-                           from_index);
+        return __last_indexof(s->cstr, s->length, str, strlen(str),
+                              from_index);
 }
 
 /**
  * Returns the index within this string of the last occurrence of the
  * specified substring. 
  * 
- * @param[in] string  The {@code string_t} object parameter.
- * @param[in] s       The substring to search for.
+ * @param[in] s    The {@code string_t} object parameter.
+ * @param[in] str  The substring to search for.
  * 
- * @return the index of the last occurrence of the specified substring, or
- *         {@code -1} if there is no such occurrence.
+ * @returns the index of the last occurrence of the specified substring, or
+ *          {@code -1} if there is no such occurrence.
  */
-int string_last_index_of_v5(string_t *string, string_t *s)
+int tstring_last_indexof_v5(const tstring *s, const tstring *str)
 {
-    return __last_index_of(string->value, string->length, s->value, s->length,
-                           0);
+        return __last_indexof(s->cstr, s->length, str->cstr, str->length, 0);
 }
 
 /**
  * Returns the index within this string of the last occurrence of the specified
  * substring, searching backward starting at the specified index.
  * 
- * @param[in] string      The {@code string_t} object parameter.
- * @param[in] s           The substring to search for.
+ * @param[in] s           The {@code string_t} object parameter.
+ * @param[in] str         The substring to search for.
  * @param[in] from_index  The index to start the search from.
  * 
- * @return the index of the last occurrence of the specified substring,
- *         searching backward from the specified index, or {@code -1} if there
- *         is no such occurrence.
+ * @returns the index of the last occurrence of the specified substring,
+ *          searching backward from the specified index, or {@code -1} if there
+ *          is no such occurrence.
  */
-int string_last_index_of_v6(string_t *string, string_t *s, int from_index)
+int tstring_last_indexof_v6(const tstring *s, const tstring *str,
+                            int from_index)
 {
-    return __last_index_of(string->value, string->length, s->value, s->length,
-                           from_index);
+        return __last_indexof(s->cstr, s->length, str->cstr, str->length,
+                              from_index);
 }
 
 /**
@@ -875,17 +888,17 @@ int string_last_index_of_v6(string_t *string, string_t *s, int from_index)
  * with the character at the specified index and extends to the end of this
  * string.
  * 
- * @param[in] string       The {@code string_t} object parameter.
+ * @param[in] s            The {@code string_t} object parameter.
  * @param[in] begin_index  The beginning index, inclusive.
  * 
- * @return the specified substring or NULL if wasn't possible to allocate
- *         memory for the new string or {@code begin_index} is out of bound.
+ * @returns the specified substring or NULL if wasn't possible to allocate
+ *          memory for the new string or {@code begin_index} is out of bound.
  */
-string_t *string_substring(string_t *string, int begin_index)
+tstring* tstring_substring(const tstring *s, int begin_index)
 {
-    int count = string->length - begin_index;
+        int count = s->length - begin_index;
 
-    return string_value_of_v2(string->value, begin_index, count);
+        return tstring_new_v3(s->cstr, begin_index, count);
 }
 
 /**
@@ -893,226 +906,200 @@ string_t *string_substring(string_t *string, int begin_index)
  * substring begins at the specified {@code begin_index} and
  * extends to the character at index {@code end_index}.
  * 
- * @param[in] string       The {@code string_t} object parameter.
+ * @param[in] s            The {@code string_t} object parameter.
  * @param[in] begin_index  The beginning index, inclusive.
  * @param[in] end_index    The ending index, exclusive.
  * 
  * @return the specified substring or NULL if wasn't possible to allocate
  *         memory for the new string or {@code begin_index} is out of bound.
  */
-string_t *string_substring_v2(string_t *string, int begin_index, int end_index)
+tstring* tstring_substring_v2(const tstring *s, int begin_index, int end_index)
 {
-    if (__check_bounds_off_count(begin_index, end_index, string->length))
-        return -1;
+        if (__check_bounds_off_count(begin_index, end_index, s->length))
+                return NULL;
     
-    int count = end_index - begin_index + 1;
+        int count = end_index - begin_index;
 
-    char *scpy = (char *)calloc(count, sizeof(char));
-    if (!scpy) return NULL;
-
-    memcpy(scpy, string->value + begin_index, count);
-
-    string_t *new_string = string_value_of_v2(scpy, 0, count);
-
-    free(scpy);
-
-    return new_string;
+        return tstring_new_v3(s->cstr, begin_index, count);
 }
 
 /**
  * Concatenates the specified string to the end of this string.
- * <p>
  * If the length of the argument string is {@code 0}, then a copy of
  * {@code string_t} object is returned. Otherwise, a {@code string_t}
  * object is returned that represents a character sequence that is the
  * concatenation of the character sequence represented by this {@code string_t}
  * object and the character sequence represented by the argument string.
- * </p>
- * @param[in] string  The {@code string_t} object parameter.
- * @param[in] s       The {@code s} that is concatenated to the end
- *                    of this {@code string}.
+ * 
+ * @param[in] s    The {@code string_t} object parameter.
+ * @param[in] str  The {@code s} that is concatenated to the end
+ *                 of this {@code string}.
  * 
  * @return a string that represents the concatenation of this object's
  *         characters followed by the string argument's characters.
  */
-string_t *string_concat(string_t *string, char *s)
+tstring* tstring_concat(const tstring *s, const char *str)
 {
-    string_t *new_string = NULL;
-    int length = string->length + strlen(s) + 1;
-
-    char *p = (char *)calloc(length, sizeof(char));
-    if (!p) return NULL;
-
-    strcat(p, (char *)string->value);
-    strcat(p, s);
-
-    new_string = string_value_of(p);
-
-    free(p);
-
-    return new_string;
+        return tstring_format("%s%s", s->cstr, str);
 }
 
 /**
  * Concatenates the specified string to the end of this string.
- * <p>
  * If the length of the argument string is {@code 0}, then a copy of
  * {@code string_t} object is returned. Otherwise, a {@code string_t}
  * object is returned that represents a character sequence that is the
  * concatenation of the character sequence represented by this {@code string_t}
  * object and the character sequence represented by the argument string.
- * </p>
- * @param[in] string  The {@code string_t} object parameter.
- * @param[in] s       The {@code s} that is concatenated to the end
- *                    of this {@code string}.
+ *
+ * @param[in] s    The {@code string_t} object parameter.
+ * @param[in] str  The {@code s} that is concatenated to the end
+ *                 of this {@code string}.
  * 
- * @return a string that represents the concatenation of this object's
- *         characters followed by the string argument's characters.
+ * @returns a string that represents the concatenation of this object's
+ *          characters followed by the string argument's characters.
  */
-string_t *string_concat_v2(string_t *string, string_t *s)
+tstring* tstring_concat_v2(const tstring *s, const tstring *str)
 {
-    return string_concat(string, (char *)s->value);
+        return tstring_format("%s%s", s->cstr, str->cstr);
 }
 
 /**
  * Returns a string resulting from replacing all occurrences of {@code oldchar}
  * in this string with {@code newchar}.
- * <p>
+ * 
  * If the character {@code oldchar} does not occur in the character sequence
  * represented by this {@code string} object, then a NULL reference is returned.
  * Otherwise, a new {@code string} object is returned that represents a
  * character sequence identical to the character sequence represented by this
  * {@code string} object, except that every occurrence of {@code oldchar} is
  * replaced by an occurrence of {@code newchar}.
- * <p>
  * 
- * @param[in] string   The {@code string_t} object parameter.
+ * 
+ * @param[in] s        The {@code string_t} object parameter.
  * @param[in] oldchar  The old character.
  * @param[in] newchar  The new character.
  * 
- * @return a new string derived from this string by replacing every occurrence
- *         of {@code oldchar} with {@code newchar} or NULL if the occurrences
- *         does not occur.
+ * @returns a new string derived from this string by replacing every occurrence
+ *          of {@code oldchar} with {@code newchar} or NULL if the occurrences
+ *          does not occur.
  */
-string_t *string_replace(string_t *string, char oldchar, char newchar)
+tstring* tstring_replace(const tstring *s, char oldchar, char newchar)
 {
-    string_t *new_string = NULL;
-    char     *buffer     = NULL;
-    int       len        = string->length;
-    int       i          = -1;
+        tstring *newstr = NULL;
+        char    *buffer = NULL;
+        int      len    = s->length;
+        int      i      = 0;
 
-    while (++i < len) {
-        if (string->value[i] == (byte)oldchar) break;
-    }
+        for (; i < len && s->cstr[i] != oldchar; i++);
 
-    if (i < len) {
-        buffer = (char *)calloc(len, sizeof(char));
+        if (i >= len) return NULL;
+
+        buffer = (char *) calloc(len + 1, sizeof(char));
         if (!buffer) return NULL;
 
-        memcpy(buffer, string->value, len);
+        memcpy(buffer, s->cstr, len);
 
-        while(i < len) {
-            char c = (char)string->value[i];
-            buffer[i] = (c == oldchar ? newchar : c);
-            i++;
+        for (; i < len; i++)
+        {
+                char c = s->cstr[i];
+                buffer[i] = (c == oldchar ? newchar : c);
         }
 
-        new_string = string_value_of_v2(buffer, 0, len);
+        newstr = tstring_new_v3(buffer, 0, len);
 
         free(buffer);
 
-        return new_string;
-    }
-
-    return NULL;
+        return newstr;
 }
 
 /**
  * Returns true if and only if this string contains the specified
  * sequence of char values.
  * 
- * @param[in] string  The {@code string_t} object parameter.
- * @param[in] s       The sequence to search for.
+ * @param[in] s    The {@code string_t} object parameter.
+ * @param[in] str  The sequence to search for.
  * 
  * @return true if this string contains {@code s}, false otherwise.
-  */
-bool string_contains(string_t *string, char *s)
+ */
+bool tstring_contains(const tstring *s, const char *str)
 {
-    return string_index_of_v3(string, s) >= 0;
+        return tstring_indexof_v3(s, str) >= 0;
+}
+
+/**
+ * Count the occurrences of the substring str in string s.
+ * 
+ * @param[in] s    The {@code string_t} object parameter.
+ * @param[in] str  The sequence to search for.
+ * 
+ * @returns the number occurences found or -1 if there is no
+ *         memory enough to complete the operation. 
+ */
+int tstring_count_ocurrences_of(const tstring *s, const char *str)
+{
+        int   i;
+        char *p;
+        char *save = strdup(s->cstr);
+
+        if (!save) return -1;
+        
+        for (i=0, p=save; strtok_r(p, str, &p); i++);
+
+        free(save);
+
+        return i;
 }
 
 /**
  * Splits this string around matches of the given delim.
  * 
- * @param[in]  string   The {@code string_t} object parameter.
+ * @param[in]  s        The {@code string_t} object parameter.
  * @param[in]  delim    A set of bytes that delimit the tokens in the parsed
  *                      string
  * @param[out] strings  The array of strings computed by splitting this string
  *                      around matches of the given {@code delim}. This
  *                      paremeter can be NULL if the only interest is the
  *                      number of the computed strings. 
- * @return a integer containing the number of the strings computed by splitting
- *         this, {@code 0} if the string wasn't splitted or -1 if there is no
- *         memory enough to allocated the string splitted. 
+ * @returns a integer containing the number of the strings computed by splitting
+ *          this, {@code 0} if the string wasn't splitted or -1 if there is no
+ *          memory enough to allocated the string splitted. 
  */
-int string_split(string_t *string, const char *delim, string_t **strings)
+int tstring_split(const tstring *s, const char *delim, tstring *strings[])
 {
-    int        count = 0, pos = 0;
-    char      *token;
-    char      *s = strdup((char *)string->value);
-    char      *saveptr = s;
-    string_t **strlist = NULL;
+        if (!delim || !strings) return 0;
 
-    if (!s) return -1;
+        int len = tstring_count_ocurrences_of(s, delim);
+        if (len <= 0) return len;
 
-    while ((token = strtok_r(saveptr, delim, &saveptr))) {
-        count++;
-    }
+        char *save = strdup(s->cstr);
+        if (!save) return -1;
 
-    if (count == 0 || !strings) goto end;
+        tstring **list = (tstring **) calloc(len, sizeof(tstring *));
+        if (!list) goto end;
 
-    free(s);
+        int i;
+        char *p, *token;
+        for (i=0, p=save; (token=strtok_r(p, delim, &p)) && i < len; i++)
+                if (!(list[i] = tstring_new(token))) goto error;
+        
+        free(save);
+        *strings = *list;
 
-    s = strdup((char *)string->value);
-    if (!s) return -1;
-
-    saveptr = s;
-
-    *strlist = (string_t *)calloc(count, sizeof(string_t *));
-    if (!strlist) {
-        count = -1;
-        goto error;
-    }
-
-    pos = count;
-    while ((token = strtok_r(saveptr, delim, &saveptr)) && pos < count) {
-        strlist[pos] = string_new();
-        if (!strlist[pos]) goto cleanup;
-
-        if (!string_init(strlist[pos], token)) goto cleanup;
-
-        pos++;
-    }
-
-    *strings = *strlist;
-
-end:
-    free(s);
-    return count;
-
-cleanup:
-    for (pos = 0; pos < count && strlist[pos]; pos++)
-        string_free(strlist[pos]);
-
+        return i;
 error:
-    free(s);
-    return -1;
+        while (--i >= 0) tstring_free(list[i]);
+
+        free(list);
+end:
+        free(save);
+
+        return -1;
 }
 
 /**
  * Splits this string around matches of the given delim.
  * 
- * @param[in]  string   The {@code string_t} object parameter.
+ * @param[in]  s        The {@code string_t} object parameter.
  * @param[in]  delim    A set of bytes that delimit the tokens in the parsed
  *                      string
  * @param[out] strings  The array of strings computed by splitting this string
@@ -1123,86 +1110,233 @@ error:
  *         this, {@code 0} if the string wasn't splitted or -1 if there is no
  *         memory enough to allocated the string splitted. 
  */
-int string_split_v2(string_t *string, string_t *delim, string_t **strings)
+int tstring_split_v2(const tstring *s, const tstring *delim, tstring *strings[])
 {
-    string_split(string, (char *)delim->value, strings);
+        return tstring_split(s, delim->cstr, strings);
 }
 
-string_t *string_to_lower_case(string_t *string)
+/**
+ * Converts all of the characters in this {@code tstring} to upper case.
+ * 
+ * @param[in] s  The {@code string_t} object parameter.
+ * 
+ * @returns the {@code tstring} converted to upper case.
+ */
+tstring* tstring_to_uppercase(const tstring *s)
 {
-    int len;
-    char *buf = strdup((char *)string->value);
-    if (!buf) return NULL;
-
-    
-    for (int i = 0; i < strlen(buf); buf++) 
-        *tmp = toupper((unsigned char) *tmp);
-    
-    return s;
-
+        return __tstring_transform(s, toupper);
 }
 
-string_t *string_format(const char *format, ...)
+/**
+ * Converts all of the characters in this {@code tstring} to lower case.
+ * 
+ * @param[in] s  The {@code string_t} object parameter.
+ * 
+ * @returns the {@code tstring} converted to lower case.
+ */
+tstring* tstring_to_lowercase(const tstring *s)
 {
-    int       size = 0;
-    char     *p = NULL;
-    va_list   args;
-    string_t *new_string = NULL;
+        return __tstring_transform(s, tolower);
+}
 
-    va_start(args, format);
-    size = vsnprintf(p, size, format, args);
-    va_end(args);
+/**
+ * Returns a string whose value is this string, with all leading and trailing
+ * space removed, 
+ * 
+ * @param[in] s  The {@code string_t} object parameter.
+ * 
+ * @returns a string whose value is this string, with all leading and trailing
+ *          space removed, or NULL if no memory enough to allocated to
+ *          complete the operation.
+ */
+tstring* tstring_trim(const tstring *s)
+{
+        int l = 0;
+        int r = s->length;
 
-    if (size < 0) return NULL;
+        for (; (l < r) && ((s->cstr[l] & 0xff) <= ' '); l++);
+        for (; (l < r) && ((s->cstr[r-1] & 0xff) <= ' '); r--);
 
-    size++;
+        return (l > 0 || r < s->length) ?
+                __tstring_new(s->cstr, r-l, l, r-l) : NULL;
+}
 
-    p = (char *)calloc(size, sizeof(char));
-    if (!p) return NULL;
+/**
+ * Returns {@code true} if the string is empty or contains only codepoints,
+ * otherwise {@code false}.
+ * 
+ * @param[in] s  The {@code string_t} object parameter.
+ * 
+ * @returns {@code true} if the string is empty or contains only codepoints,
+ *          otherwise {@code false}
+ */
+bool tstring_isblank(const tstring *s)
+{
+        int i = 0;
 
-    va_start(args, format);
-    size = vsnprintf(p, size, format, args);
-    va_end(args);
+        for (; (s->cstr[i] != '\0') && ((s->cstr[i] & 0xff) <= ' '); i++);
 
-    if (size < 0) {
+        return i+1 == s->length;
+}
+
+/**
+ * Returns the string representation of the {@code tstring} argument.
+ * 
+ * Whichever way you get a pointer, you must not access memory further along
+ * from the pointer than the characters guaranteed present in the descriptions
+ * above. Attempts to do so have undefined behaviour, with a very real chance of
+ * application crashes and garbage results even for reads, and additionally
+ * wholesale data, stack corruption and/or security vulnerabilities for writes.
+ * 
+ * @param[in] s  The {@code string_t} object parameter.
+ * 
+ * @returns a string representation of the {@code tstring} argument.
+ */
+const char* tstring_to_string(const tstring *s)
+{
+        return s->parent.vtable->tobject_to_string(s);
+}
+
+/**
+ * Returns a formatted string using the specified format string and arguments.
+ * 
+ * @param[in] foramt  The format parameter.
+ * 
+ * @returns a formatted string.
+ */
+tstring* tstring_format(const char *format, ...)
+{
+        va_list args;
+
+        va_start(args, format);
+        int size = vsnprintf(NULL, 0, format, args);
+        va_end(args);
+
+        if (size < 0) return NULL;
+
+        char *p = (char *) calloc(++size, sizeof(char));
+        if (!p) return NULL;
+
+        va_start(args, format);
+        size = vsnprintf(p, size, format, args);
+        va_end(args);
+
+        tstring *newstr = NULL;
+        if (size >= 0) newstr = tstring_new(p);
+        
         free(p);
-        return NULL;
-    }
 
-    new_string = string_value_of(p);
-
-    free(p);
-
-    return new_string;
+        return newstr;
 }
 
-string_t *string_value_of(char *s)
+/**
+ * Returns the string representation of the {@code char} array argument. The
+ * contents of the character array are copied, subsequent modification of the
+ * character array does not affect the returned string.
+ * 
+ * @param[in] s  The character array.
+ * 
+ * @returns a {@code tstring} that contains the characters of the character
+ *          array.
+ */
+tstring* tstring_value_of(const char *s)
 {
-    string_t *new_string = string_new();
-    if (!new_string) return NULL;
-
-    if (!string_init(new_string, s)) return NULL;
-
-    return new_string;
+        return tstring_new(s);
 }
 
-string_t *string_value_of_v2(char *s, int offset, int count)
+/**
+ * Returns the string representation of a specific subarray of the {@code char}
+ * array argument.
+ * 
+ * The {@code offset} argument is the index of the first character of the
+ * subarray. The {@code count} argument specifies the length of the subarray.
+ * The contents of the subarray are copied; subsequent modification of the
+ * character array does not affect the returned string.
+ * 
+ * @param[in] s       The character array.
+ * @param[in] offset  Initial offset of the subarray.
+ * @param[in] count   Length of the subarray.
+
+ * @returns a {@code tstring} that contains the characters of the character
+ *          array.
+ */
+tstring* string_value_of_v2(char *s, int offset, int count)
 {
-    string_t *new_string = string_new();
-    if (!new_string) return NULL;
-
-    if (!string_init_v3(new_string, s, offset, count)) {
-        string_free(new_string);
-        return NULL;
-    }
-
-    return new_string;
+        return tstring_new_v3(s, offset, count);
 }
 
-string_t *string_value_of_v8(object_t *object)
+/**
+ * Returns the string representation of the {@code char} argument.
+ * 
+ * @param[in] c  a {@code char}.
+ *
+ * @returns a string of length {@code 1} containing as its single character the
+ *          argument {@code c}.
+ */
+tstring* tstring_value_of_v3(char c)
 {
-    if (strcmp(CLASS_TYPE, object->class_type) == 0)
-        return (string_t *) object;
-    else
-        return NULL;
+        return tstring_format("%c", c);
+}
+
+/**
+ * Returns the string representation of the {@code int} argument.
+ * 
+ * @param[in] i  an {@code int}.
+ *
+ * @returns a string representation of the {@code int} argument.
+ */
+tstring* tstring_value_of_v4(int i)
+{
+        return tstring_format("%i", i);
+}
+
+/**
+ * Returns the string representation of the {@code long} argument.
+ * 
+ * @param[in] l  a {@code int}.
+ *
+ * @returns a string representation of the {@code long} argument.
+ */
+tstring* tstring_value_of_v5(long l)
+{
+        return tstring_format("%li", l);
+
+}
+
+/**
+ * Returns the string representation of the {@code float} argument.
+ * 
+ * @param[in] f  a {@code float}.
+ *
+ * @returns a string representation of the {@code float} argument.
+ */
+tstring* tstring_value_of_v6(float f)
+{
+        return tstring_format("%f", f);
+}
+
+/**
+ * Returns the string representation of the {@code double} argument.
+ * 
+ * @param[in] d  a {@code double}.
+ *
+ * @returns a string representation of the {@code double} argument.
+ */
+tstring* tstring_value_of_v7(double d)
+{
+        return tstring_format("%lf", d);
+}
+
+/**
+ * Returns the string representation of the {@code tobject} argument.
+ * 
+ * @param[in] o  a {@code tobject}.
+ *
+ * @returns a string representation of the {@code tobject} argument.
+ */
+tstring* tstring_value_of_v8(const tobject *o)
+{
+        if (!tobject_istypeof_object(o)) return NULL;
+
+        return tstring_new(tobject_to_string(o));
 }

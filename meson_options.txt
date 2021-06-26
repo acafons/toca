@@ -14,10 +14,10 @@ option('man',
        value : false,
        description : 'generate man pages (requires xsltproc)')
 
-option('gtk_doc',
+option('doc',
        type : 'boolean',
        value : false,
-       description : 'use gtk-doc to build documentation')
+       description : 'use doxygen to build documentation')
 
 option('tests',
        type : 'boolean',
@@ -38,17 +38,17 @@ option('tlib_debug',
        type : 'feature',
        value : 'auto',
        yield : true,
-       description : 'Enable GLib debug infrastructure (see docs/macros.txt)')
+       description : 'Enable debug infrastructure (see docs/macros.txt)')
 
-option('tlib_assert',
+option('asserts',
        type : 'boolean',
        value : true,
        yield : true,
-       description : 'Enable GLib assertion (see docs/macros.txt)')
+       description : 'Enable assertion (see docs/macros.txt)')
 
 option('tlib_checks',
        type : 'boolean',
        value : true,
        yield : true,
-       description : 'Enable GLib checks such as API guards (see docs/macros.txt)')
+       description : 'Enable checks such as API guards (see docs/macros.txt)')
 
