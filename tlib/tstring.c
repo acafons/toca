@@ -31,20 +31,15 @@ struct tstring
 static int __tstring_hashcode(const void *this)
 {
         tstring *s = (tstring *) this;
-        int h = s->hash;
 
-        if (h || s->hash_is_zero)
-                return h;
+        if (s->hash || s->hash_is_zero) return s->hash;
 
         for (int i = 0; i < s->length; i++)
-                h = 31 * h + (s->cstr[i] & 0xff);
+                s->hash = 31 * s->hash + (s->cstr[i] & 0xff);
 
-        if (h == 0)
-                s->hash_is_zero = true;
-        else
-                s->hash = h;
+        if (s->hash == 0) s->hash_is_zero = true;
 
-        return h;
+        return s->hash;
 }
 
 static const char* __tstring_getclass(const void *this)
@@ -149,6 +144,37 @@ static bool __check_bounds_off_count(int offset, int count, int length)
         return (offset < 0 || count < 0 || offset > length - count);
 }
 
+static bool __init_cstr(tstring *s, const char *v, int vlen, int offset,
+                         int len)
+{
+        if (__check_bounds_off_count(offset, len, vlen))
+                return false;
+
+        s->length = len > 0 ? len : 0;
+        s->cstr   = (char *) calloc(s->length + 1, sizeof(char));
+
+        if (!s->cstr) return false;
+
+        memcpy(s->cstr, v + offset, s->length);
+
+        return true;
+}
+
+static void __override_parent_vtable(tstring *s)
+{
+        s->parent.vtable->tobject_hash      = __tstring_hashcode;
+        s->parent.vtable->tobject_equals    = __tstring_equals;
+        s->parent.vtable->tobject_getclass  = __tstring_getclass;
+        s->parent.vtable->tobject_clone     = __tstring_clone;
+        s->parent.vtable->tobject_free      = __tstring_free;
+        s->parent.vtable->tobject_to_string = __tstring_to_string;
+}
+
+static void __set_classtype_as_string(tstring *s)
+{
+        strcpy(s->parent.class_type, TLIB_CLASS_TSTRING);
+}
+
 /**
  * Private allocation of a new string object.
  * 
@@ -179,33 +205,19 @@ static tstring* __tstring_alloc()
  */
 static tstring* __tstring_new(const char *v, int vlen, int offset, int len)
 {
-        if (__check_bounds_off_count(offset, len, vlen))
-                return NULL;
 
         tstring *s = __tstring_alloc();
         if (!s) return NULL;
 
-        s->length = len > 0 ? len : 0;
-        s->cstr   = (char *) calloc(s->length + 1, sizeof(char));
-
-        if (!s->cstr)
+        if (!__init_cstr(s, v, vlen, offset, len))
         {
                 free(s);
                 return NULL;
         }
 
-        memcpy(s->cstr, v + offset, s->length);
-
         tobject_init((tobject *) s);
-
-        strcpy(s->parent.class_type, TLIB_CLASS_TSTRING);
-
-        s->parent.vtable->tobject_hash      = __tstring_hashcode;
-        s->parent.vtable->tobject_equals    = __tstring_equals;
-        s->parent.vtable->tobject_getclass  = __tstring_getclass;
-        s->parent.vtable->tobject_clone     = __tstring_clone;
-        s->parent.vtable->tobject_free      = __tstring_free;
-        s->parent.vtable->tobject_to_string = __tstring_to_string;
+        __set_classtype_as_string(s);
+        __override_parent_vtable(s);
 
         return s;
 }
