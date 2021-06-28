@@ -12,6 +12,7 @@
 #include <tlib/tobject.h>
 #include <tlib/tobject-p.h>
 #include <tlib/tversion.h>
+#include <tlib/tstring.h>
 
 #undef __TLIB_H_INSIDE__
 

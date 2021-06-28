@@ -24,7 +24,7 @@ option('tests',
        value : true,
        description : 'build tests')
 
-option('installed_tests',
+option('install_tests',
        type : 'boolean',
        value : false,
        description : 'enable installed tests')

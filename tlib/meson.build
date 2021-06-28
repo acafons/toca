@@ -46,3 +46,8 @@ pkg.generate(libtlib,
         name : 'tlib',
         description : 'Tiny Object in C API (TOCA)',
 )
+
+if build_tests
+        cmocka_dep = dependency('cmocka')
+        subdir('tests')
+endif

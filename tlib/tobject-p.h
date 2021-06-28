@@ -30,7 +30,7 @@ struct tobject
 {
         unsigned int           magic;
         char                   class_type[TLIB_CLASS_MAX_SIZE];
-        struct tobject_vtable *vtable;
+        struct tobject_vtable  vtable;
 };
 
 TLIB_END_DECLS

@@ -26,6 +26,7 @@ struct tstring
         int      length;
         int      hash;
         bool     hash_is_zero;
+        void     (*parent_free)(void *);
 };
 
 static int __tstring_hashcode(const void *this)
@@ -66,15 +67,19 @@ static bool __tstring_equals(const void *this, const void *ref)
 static tobject* __tstring_clone(const void *this)
 {
         tstring *s = (tstring *) this;
-        tstring *r = (tstring *) malloc(sizeof(tstring));
+        tstring *d = (tstring *) malloc(sizeof(tstring));
 
-        if (!r) return NULL;
+        if (!d) return NULL;
 
-        memcpy(r, s, sizeof(tstring));
+        memcpy(d, s, sizeof(tstring));
 
-        if (!(r->cstr = strdup(s->cstr))) return NULL;
+        if (!(d->cstr = strdup(s->cstr)))
+        {
+                free(d);
+                return NULL;
+        }
 
-        return (tobject *) r;
+        return (tobject *) d;
 }
 
 static void __tstring_free(void *this)
@@ -85,7 +90,7 @@ static void __tstring_free(void *this)
 
         if (s->cstr) free(s->cstr);
 
-        tobject_free((tobject *) s);
+        s->parent_free((tobject *) s);
 }
 
 static const char* __tstring_to_string(const void *this)
@@ -144,7 +149,7 @@ static bool __check_bounds_off_count(int offset, int count, int length)
         return (offset < 0 || count < 0 || offset > length - count);
 }
 
-static bool __init_cstr(tstring *s, const char *v, int vlen, int offset,
+static bool __create_cstr(tstring *s, const char *v, int vlen, int offset,
                          int len)
 {
         if (__check_bounds_off_count(offset, len, vlen))
@@ -160,14 +165,19 @@ static bool __init_cstr(tstring *s, const char *v, int vlen, int offset,
         return true;
 }
 
+static void __save_parent_vtable(tstring *s)
+{
+        s->parent_free = s->parent.vtable.tobject_free;
+}
+
 static void __override_parent_vtable(tstring *s)
 {
-        s->parent.vtable->tobject_hash      = __tstring_hashcode;
-        s->parent.vtable->tobject_equals    = __tstring_equals;
-        s->parent.vtable->tobject_getclass  = __tstring_getclass;
-        s->parent.vtable->tobject_clone     = __tstring_clone;
-        s->parent.vtable->tobject_free      = __tstring_free;
-        s->parent.vtable->tobject_to_string = __tstring_to_string;
+        s->parent.vtable.tobject_hash      = __tstring_hashcode;
+        s->parent.vtable.tobject_equals    = __tstring_equals;
+        s->parent.vtable.tobject_getclass  = __tstring_getclass;
+        s->parent.vtable.tobject_clone     = __tstring_clone;
+        s->parent.vtable.tobject_free      = __tstring_free;
+        s->parent.vtable.tobject_to_string = __tstring_to_string;
 }
 
 static void __set_classtype_as_string(tstring *s)
@@ -175,19 +185,16 @@ static void __set_classtype_as_string(tstring *s)
         strcpy(s->parent.class_type, TLIB_CLASS_TSTRING);
 }
 
-/**
- * Private allocation of a new string object.
- * 
- * @return On success, functions return a pointer to the string object
- *         allocated. It returns NULL if insufficent memory was available.
- */
-static tstring* __tstring_alloc()
+static void __tstring_init(tstring *s)
 {
-    return (tstring *) calloc(1, sizeof(tstring));
+        tobject_init((tobject *) s);
+        __set_classtype_as_string(s);
+        __save_parent_vtable(s);
+        __override_parent_vtable(s);
 }
 
 /**
- * Package private initialization.
+ * Private allocation of a new string object.
  * 
  * Stores the char[] value into a byte[] that each byte represents
  * the 8 low-order bits of the corresponding character, if the char[]
@@ -205,19 +212,16 @@ static tstring* __tstring_alloc()
  */
 static tstring* __tstring_new(const char *v, int vlen, int offset, int len)
 {
-
-        tstring *s = __tstring_alloc();
+        tstring *s = (tstring *) calloc(1, sizeof(tstring));
         if (!s) return NULL;
 
-        if (!__init_cstr(s, v, vlen, offset, len))
+        if (!__create_cstr(s, v, vlen, offset, len))
         {
                 free(s);
                 return NULL;
         }
 
-        tobject_init((tobject *) s);
-        __set_classtype_as_string(s);
-        __override_parent_vtable(s);
+        __tstring_init(s);
 
         return s;
 }
@@ -298,7 +302,7 @@ tstring* tstring_new_v4()
 void tstring_free(tstring *s)
 {
         if (!s) return;
-        s->parent.vtable->tobject_free(s);
+        s->parent.vtable.tobject_free(s);
 }
 
 /**
@@ -310,7 +314,7 @@ void tstring_free(tstring *s)
  */
 tstring* tstring_clone(tstring *s)
 {
-        return (tstring *) s->parent.vtable->tobject_clone(s);
+        return (tstring *) s->parent.vtable.tobject_clone(s);
 }
 
 /**
@@ -430,7 +434,7 @@ bool tstring_istypeof_string(const tobject *o)
  */
 bool tstring_equals(const tstring *s, const tstring *ref)
 {
-        return s->parent.vtable->tobject_equals(s, ref);
+        return s->parent.vtable.tobject_equals(s, ref);
 }
 
 /**
@@ -649,7 +653,7 @@ bool tstring_endswith_v2(const tstring *s, const tstring *suffix)
  */
 int tstring_hashcode(const tstring *s)
 {
-        return s->parent.vtable->tobject_hash(s);
+        return s->parent.vtable.tobject_hash(s);
 }
 
 /**
@@ -1195,7 +1199,7 @@ bool tstring_isblank(const tstring *s)
  */
 const char* tstring_to_string(const tstring *s)
 {
-        return s->parent.vtable->tobject_to_string(s);
+        return s->parent.vtable.tobject_to_string(s);
 }
 
 /**

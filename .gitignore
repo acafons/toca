@@ -53,5 +53,9 @@ dkms.conf
 
 # Meson
 meson-build/
+builddir/
 [Bb]uild/
+
+# vscode
+.vscode/
 

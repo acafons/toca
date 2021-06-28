@@ -43,14 +43,14 @@ endif
 
 tlib_pkgconfigreldir = join_paths(tlib_libdir, 'pkgconfig')
 
-# installed_tests_metadir = join_paths(tlib_datadir, 'installed-tests', meson.project_name())
-# installed_tests_execdir = join_paths(tlib_libexecdir, 'installed-tests', meson.project_name())
-# installed_tests_enabled = get_option('installed_tests')
-# installed_tests_template = files('template.test.in')
-# installed_tests_template_tap = files('template-tap.test.in')
+installed_tests_metadir = join_paths(tlib_datadir, 'installed-tests', meson.project_name())
+installed_tests_execdir = join_paths(tlib_libexecdir, 'install-tests', meson.project_name())
+install_tests_enabled = get_option('install_tests')
+installed_tests_template = files('template.test.in')
+installed_tests_template_tap = files('template-tap.test.in')
 
 # Don’t build the tests unless we can run them (either natively, in an exe wrapper, or by installing them for later use)
-# build_tests = get_option('tests') and (not meson.is_cross_build() or (meson.is_cross_build() and meson.has_exe_wrapper()) or installed_tests_enabled)
+build_tests = get_option('tests') and (not meson.is_cross_build() or (meson.is_cross_build() and meson.has_exe_wrapper()) or installed_tests_enabled)
 
 add_project_arguments('-D_GNU_SOURCE', language: 'c')
 

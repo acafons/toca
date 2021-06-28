@@ -45,7 +45,7 @@ TLIB_AVAILABLE_IN_ALL
 bool tstring_isempty(const tstring *s);
 
 TLIB_AVAILABLE_IN_ALL
-char string_at(const tstring *s, int index);
+char tstring_at(const tstring *s, int index);
 
 TLIB_AVAILABLE_IN_ALL
 int  tstring_getchars(const tstring *s, int src_begin, int src_end, char *dst,

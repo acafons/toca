@@ -72,6 +72,16 @@ static void __tobject_free(void *this)
         free(o);
 }
 
+static void __init_vtable(tobject * const o)
+{
+        o->vtable.tobject_clone     = __tobject_clone;
+        o->vtable.tobject_equals    = __tobject_equals;
+        o->vtable.tobject_getclass  = __tobject_getclass;
+        o->vtable.tobject_hash      = __tobject_hash;
+        o->vtable.tobject_to_string = __tobject_to_string;
+        o->vtable.tobject_free      = __tobject_free;
+}
+
 /**
  * Initiliazes a object.
  * 
@@ -80,13 +90,7 @@ static void __tobject_free(void *this)
 void tobject_init(tobject * const o)
 {
         o->magic = TLIB_OBJECT_MAGIC;
-
-        o->vtable->tobject_clone     = __tobject_clone;
-        o->vtable->tobject_equals    = __tobject_equals;
-        o->vtable->tobject_getclass  = __tobject_getclass;
-        o->vtable->tobject_hash      = __tobject_hash;
-        o->vtable->tobject_to_string = __tobject_to_string;
-        o->vtable->tobject_free      = __tobject_free;
+        __init_vtable(o);
 }
 
 /**
@@ -96,7 +100,7 @@ void tobject_init(tobject * const o)
  */
 void tobject_free(tobject *o)
 {
-        o->vtable->tobject_free(o);
+        o->vtable.tobject_free(o);
 }
 
 /**
@@ -108,7 +112,7 @@ void tobject_free(tobject *o)
  */
 int tobject_hash(const tobject *o)
 {
-        return o->vtable->tobject_hash(o);
+        return o->vtable.tobject_hash(o);
 }
 
 /**
@@ -122,7 +126,7 @@ int tobject_hash(const tobject *o)
  */
 bool tobject_equals(const tobject *o, const tobject *ref)
 {
-        return o->vtable->tobject_equals(o, ref);
+        return o->vtable.tobject_equals(o, ref);
 }
 
 /**
@@ -135,7 +139,7 @@ bool tobject_equals(const tobject *o, const tobject *ref)
  */
 const char* tobject_getclass(const tobject *o)
 {
-        return o->vtable->tobject_getclass(o);
+        return o->vtable.tobject_getclass(o);
 }
 
 /**
@@ -148,7 +152,7 @@ const char* tobject_getclass(const tobject *o)
  */
 const char* tobject_to_string(const tobject *o)
 {
-        return o->vtable->tobject_to_string(o);
+        return o->vtable.tobject_to_string(o);
 }
 
 /**
@@ -161,7 +165,7 @@ const char* tobject_to_string(const tobject *o)
  */
 tobject* tobject_clone(const tobject *o)
 {
-        return o->vtable->tobject_clone(o);
+        return o->vtable.tobject_clone(o);
 }
 
 /**
