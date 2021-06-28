@@ -46,7 +46,6 @@ static int __tstring_hashcode(const void *this)
 static const char* __tstring_getclass(const void *this)
 {
         tstring *s = (tstring *) this;
-
         return strdup(s->parent.class_type);
 }
 

@@ -1,5 +1,6 @@
 tlib_tests = {
-        'tstring-at' : {}
+        'tstring_new' : {},
+        'tstring_at' : {},
 }
 
 foreach test_name, extra_args : tlib_tests
