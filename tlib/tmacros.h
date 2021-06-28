@@ -11,6 +11,48 @@
 #error "Only <tlib.h> can be included directly."
 #endif
 
+#ifdef __GNUC__
+#define TLIB_GNUC_CHECK_VERSION(major, minor) \
+    ((__GNUC__ > (major)) || \
+     ((__GNUC__ == (major)) && \
+      (__GNUC_MINOR__ >= (minor))))
+#else
+#define G_GNUC_CHECK_VERSION(major, minor) 0
+#endif
+
+/**
+ * TLIB_GNUC_PRINTF:
+ * @format_idx: the index of the argument corresponding to the
+ *     format string (the arguments are numbered from 1)
+ * @arg_idx: the index of the first of the format arguments, or 0 if
+ *     there are no format arguments
+ *
+ * Expands to the GNU C `format` function attribute if the compiler is gcc.
+ * This is used for declaring functions which take a variable number of
+ * arguments, with the same syntax as `printf()`. It allows the compiler
+ * to type-check the arguments passed to the function.
+ *
+ * Place the attribute after the function declaration, just before the
+ * semicolon.
+ *
+ * See the
+ * [GNU C documentation](https://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html#index-Wformat-3288)
+ * for more details.
+ *
+ * |[<!-- language="C" -->
+ * int snprintf (char *string,
+ *                long  n,
+ *                char const *format,
+ *                  ...) G_GNUC_PRINTF (3, 4);
+ * ]|
+ */
+#if     __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ > 4)
+#define TLIB_GNUC_PRINTF( format_idx, arg_idx )    \
+  __attribute__((__format__ (__printf__, format_idx, arg_idx)))
+#else   /* !__GNUC__ */
+#define TLIB_GNUC_PRINTF( format_idx, arg_idx )
+#endif
+
 /* We include stddef.h to get the system's definition of NULL
  */
 #include <stddef.h>

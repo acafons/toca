@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: BSD-2-Clause
+
+set -eo pipefail
+
+source $DOCKER_BUILD_DIR/.ci/docker-prelude.sh
+
+export CONFIGURE_OPTIONS=-Dbuild_tests=tru -Db_coverage=true
+
+if [ -d build ]; then
+        rm -rf build
+fi
+
+meson build $CONFIGURE_OPTIONS
+
+# Is it a fuzz run, if so build the fuzz test and exit.
+if [ "$GEN_FUZZ" == "1" ]; then
+        echo "to be developed"
+fi
+
+#
+# General build runs
+#
+
+pushd ./build
+
+echo "PWD: $(pwd)"
+echo "ls -la ../ $(ls -la ../)"
+
+if [ "$SCANBUILD" == "yes" ]; then
+        ninja scan-build --status-bugs make -j distcheck
+else
+        ninja
+fi
+
+meson test
+popd
+
+# back in root git directory, check for whitespace errors. We do this post CI
+# so people can verify the rest of their patch works in CI before dying.
+# git diff --check fails with a non-zero return code causing the shell to die
+# as it has a set -e executed.
+if [ -n "$BASE_REF" ]; then
+        echo "Running whitespace check"
+        git fetch origin "$BASE_REF"
+        git diff --check "origin/$BASE_REF"
+fi
+
+if [ "$ENABLE_COVERAGE" == "true" ]; then
+        bash <(curl -s https://codecov.io/bash)
+fi
+
+exit 0

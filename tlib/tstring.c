@@ -1208,6 +1208,7 @@ const char* tstring_to_string(const tstring *s)
  * 
  * @returns a formatted string.
  */
+TLIB_GNUC_PRINTF(1, 2)
 tstring* tstring_format(const char *format, ...)
 {
         va_list args;

@@ -19,9 +19,9 @@ option('doc',
        value : false,
        description : 'use doxygen to build documentation')
 
-option('tests',
+option('build_tests',
        type : 'boolean',
-       value : true,
+       value : false,
        description : 'build tests')
 
 option('install_tests',
