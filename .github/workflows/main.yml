@@ -1,0 +1,39 @@
+name: CI
+on:
+  [push, pull_request]
+jobs:
+  generic-build-test:
+    runs-on: ubuntu-latest
+    if: "!contains(github.ref, 'coverity_scan')"
+    strategy:
+      matrix:
+        docker_image: [ubuntu-18.04, ubuntu-20.04, fedora-32, opensuse-leap]
+        compiler: [gcc, clang]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+      - name: Launch Container
+        env:
+          DOCKER_IMAGE: ${{ matrix.docker_image }}
+          CC: ${{ matrix.compiler }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          ./.ci/ci.run
+      - name: failure
+        if: ${{ failure() }}
+        run: cat $(find ../ -name testlog.txt) || true
+  scanbuild:
+    runs-on: ubuntu-latest
+    if: "!contains(github.ref, 'coverity_scan')"
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+      - name: Launch Container
+        env:
+          CC: clang
+          DOCKER_IMAGE: fedora-32
+          SCANBUILD: yes
+        run: ./.ci/ci.run
+      - name: failure
+        if: ${{ failure() }}
+        run: cat $(find ../ -name testlog.txt) || true
