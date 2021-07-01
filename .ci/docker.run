@@ -5,7 +5,7 @@ set -eo pipefail
 
 source $DOCKER_BUILD_DIR/.ci/docker-prelude.sh
 
-export CONFIGURE_OPTIONS=-Dbuild_tests=tru -Db_coverage=true
+export CONFIGURE_OPTIONS="-Dbuild_tests=true -Db_coverage=true"
 
 if [ -d build ]; then
         rm -rf build
