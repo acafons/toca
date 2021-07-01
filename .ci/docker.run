@@ -28,7 +28,7 @@ echo "PWD: $(pwd)"
 echo "ls -la ../ $(ls -la ../)"
 
 if [ "$SCANBUILD" == "yes" ]; then
-        ninja scan-build --status-bugs make -j distcheck
+        scan-build --status-bugs ninja
 else
         ninja
 fi
