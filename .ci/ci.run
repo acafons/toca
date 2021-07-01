@@ -35,7 +35,7 @@ else
 fi
 
 docker run --cap-add=SYS_PTRACE $ci_env --env-file .ci/docker.env \
-        -v "$(pwd):/workspace/$PROJECT" "ghcr.io/tpm2-software/$DOCKER_IMAGE" \
+        -v "$(pwd):/workspace/$PROJECT" "ghcr.io/acafons/$DOCKER_IMAGE" \
         /bin/bash -c "/workspace/$PROJECT/.ci/$script"
 
 exit 0
