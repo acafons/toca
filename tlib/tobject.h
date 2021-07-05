@@ -12,8 +12,8 @@
 #endif
 
 #include <stdbool.h>
-#include <tmacros.h>
-#include <tversion.h>
+#include <tlib/tmacros.h>
+#include <tlib/tversion.h>
 
 TLIB_BEGIN_DECLS
 

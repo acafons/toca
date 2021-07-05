@@ -12,9 +12,9 @@
 #endif
 
 #include <stdbool.h>
-#include <tversion.h>
-#include <tobject.h>
-#include <tmacros.h>
+#include <tlib/tversion.h>
+#include <tlib/tobject.h>
+#include <tlib/tmacros.h>
 
 TLIB_BEGIN_DECLS
 

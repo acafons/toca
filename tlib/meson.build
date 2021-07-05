@@ -1,11 +1,11 @@
 configure_file(input : 'tlibconfig.h.in', output : 'tlibconfig.h',
-        install_dir : join_paths(get_option('libdir'), 'tlib-1.0/include'),
+        install_dir : join_paths(get_option('libdir'), 'toca-1.0/include'),
         configuration : tlibconfig_conf)
 
 tlib_headers = files(
         'tlib.h',
 )
-install_headers(tlib_headers, subdir : 'tlib-1.0')
+install_headers(tlib_headers, subdir : 'toca-1.0')
 
 tlib_sub_headers = files(
         'tobject.h',
@@ -13,7 +13,7 @@ tlib_sub_headers = files(
         'tversion.h',
         'tstring.h',
 )
-install_headers(tlib_sub_headers, subdir : 'tlib-1.0/tlib')
+install_headers(tlib_sub_headers, subdir : 'toca-1.0/tlib')
 
 tlib_sources = files(
         'tobject.c',
