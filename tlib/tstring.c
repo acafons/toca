@@ -4,11 +4,12 @@
  * All rights reserved.
  *******************************************************************************/
 
+#ifdef HAVE_CONFIG_H
 #include "config.h"
+#endif
 
 #include <stdlib.h>
 #include <string.h>
-#include <strings.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -18,6 +19,9 @@
 #include "tobject-p.h"
 #include "tstring.h"
 
+#if !defined(_MSC_VER) || (_MSC_VER < 1400)
+#include "linux/string_s/string_s.h"
+#endif
 
 struct tstring
 {
@@ -116,6 +120,45 @@ static int __last_indexof(char *src, int src_count, const char *tgt,
         return -1;
 }
 
+/* strcasecmp: compare S1 and S2, ignoring case. */
+static int __strcasecmp(const char* s1, const char* s2)
+{
+        const unsigned char* p1 = (const unsigned char*)s1;
+        const unsigned char* p2 = (const unsigned char*)s2;
+        int r;
+
+        for (; (r = tolower(*p1) - tolower(*p2)) == 0 && *p1 != '\0';
+                p1++, p2++);
+
+        return r;
+}
+
+/* index: returns a pointer to the first occurrence of the character c in the
+          string p.
+*/
+static char* __index(const char* p, int c)
+{
+        for (; *p != (char)c; p++)
+                if (*p == '\0') return NULL;
+
+        return (char*)p;
+}
+
+/* rindex: returns a pointer to the last occurrence of the character c in the
+   string s.
+*/
+static char* __rindex(const char* p, int c)
+{
+        char* save;
+        char ch = c;
+
+        for (save = NULL;; p++)
+        {
+                if (*p == ch)   save = (char*)p;
+                if (*p == '\0') return save;
+        }
+}
+
 /* tstring_transform: convert string to upper or lower case. */
 static tstring* __tstring_transform(const tstring *s, int (*func)(int))
 {
@@ -181,7 +224,8 @@ static void __override_parent_vtable(tstring *s)
 
 static void __set_classtype_as_string(tstring *s)
 {
-        strcpy(s->parent.class_type, TLIB_CLASS_TSTRING);
+        strcpy_s(s->parent.class_type, sizeof(*s->parent.class_type),
+                 TLIB_CLASS_TSTRING);
 }
 
 static void __tstring_init(tstring *s)
@@ -457,7 +501,7 @@ bool tstring_equals_ignorecase(const tstring *s, const tstring *ref)
 
         if (s->length != ref->length) return false;
 
-        return strcasecmp(s->cstr, ref->cstr) == 0;
+        return __strcasecmp(s->cstr, ref->cstr) == 0;
 }
 
 /**
@@ -515,7 +559,7 @@ int tstring_compare_v2(const tstring *s, const tstring *str)
  */
 int tstring_compare_ignorecase(const tstring *s, const char *str)
 {
-        return strcasecmp(s->cstr, str);
+        return __strcasecmp(s->cstr, str);
 }
 
 /**
@@ -535,7 +579,7 @@ int tstring_compare_ignorecase(const tstring *s, const char *str)
  */
 int tstring_compare_ignorecase_v2(const tstring *s, const tstring *str)
 {
-        return strcasecmp(s->cstr, str->cstr);
+        return __strcasecmp(s->cstr, str->cstr);
 }
 
 /**
@@ -668,7 +712,7 @@ int tstring_hashcode(const tstring *s)
  */
 int tstring_indexof(const tstring *s, int c)
 {
-        char *p = index(s->cstr, c);
+        char *p = __index(s->cstr, c);
 
         return p ? p - s->cstr : -1;
 }
@@ -690,7 +734,7 @@ int tstring_indexof_v2(const tstring *s, int c, int from_index)
         if (from_index < 0 || from_index >= s->length)
                 return -1;
 
-        char *p = index(s->cstr + from_index, c);
+        char *p = __index(s->cstr + from_index, c);
 
         return p ? p - s->cstr : -1;
 }
@@ -786,7 +830,7 @@ int tstring_indexof_v6(const tstring *s, const tstring *str, int from_index)
  */
 int tstring_last_indexof(const tstring *s, int c)
 {
-        char *p = rindex(s->cstr, c);
+        char *p = __rindex(s->cstr, c);
 
         return p ? p - s->cstr : -1;
 }

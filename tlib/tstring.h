@@ -4,8 +4,8 @@
  * All rights reserved.
  *******************************************************************************/
 
-#ifndef __TSTRING_H_
-#define __TSTRING_H_
+#ifndef __TSTRING_H__
+#define __TSTRING_H__
 
 #if !defined (__TLIB_H_INSIDE__) && !defined (TLIB_COMPILATION)
 #error "Only <tlib.h> can be included directly."

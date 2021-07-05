@@ -93,6 +93,8 @@ if get_option('default_library') != 'static'
         endif
 endif
 
+add_project_arguments('-DHAVE_CONFIG_H', language: 'c')
+
 # We need to know the CRT being used to determine what .lib files we need on
 # Visual Studio for dependencies that don't normally come with pkg-config files
 vs_crt = 'release'
@@ -136,7 +138,6 @@ headers = [
         'stdbool.h',
         'stdlib.h',
         'string.h',
-        'strings.h',
         'stdarg.h',
         'ctype.h',
         'stdint.h',

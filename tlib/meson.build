@@ -17,7 +17,8 @@ install_headers(tlib_sub_headers, subdir : 'tlib-1.0/tlib')
 
 tlib_sources = files(
         'tobject.c',
-        'tstring.c'
+        'tstring.c',
+        'linux/string_s/strcpy_s.c'
 )
 
 tlib_c_args = ['-DTLIB_COMPILATION'] + tlib_hidden_visibility_args
