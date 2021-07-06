@@ -6,7 +6,7 @@ task:
     - pkg update -f
     - pkg upgrade -y
     - pkg install -y bash coreutils pkgconf ninja
-    - pkg install -y cmocka wget curl git python3 python3-pip
+    - pkg install -y cmocka wget curl git python3 py37-pip
     - python3 -m pip install meson
   script:
     meson build -D build_tests=true &&
