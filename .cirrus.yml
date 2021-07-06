@@ -1,0 +1,15 @@
+task:
+  env:
+  freebsd_instance:
+    matrix:
+      image_family: freebsd-12-2
+  install_script:
+    - pkg update -f
+    - pkg upgrade -y
+    - pkg install -y bash coreutils pkgconf ninja
+    - pkg install -y cmocka wget curl git python3 python3-pip
+    - python3 -m pip install meson
+  script:
+    meson build -D build_tests=true &&
+    ninja -C build && 
+    cd build && meson test || { cat meson-logs/meson-log.txt; exit 1; }
