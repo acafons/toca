@@ -1,5 +1,4 @@
 task:
-  env:
   freebsd_instance:
     matrix:
       image_family: freebsd-12-2
