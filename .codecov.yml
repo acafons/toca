@@ -1,0 +1,12 @@
+ignore:
+  - "tests"
+  - "tlib/tests"
+
+coverage:
+  status:
+    project:
+      default:
+        threshold: 1%
+
+comment:
+  behavior: new
