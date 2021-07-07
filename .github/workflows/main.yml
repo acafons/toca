@@ -37,3 +37,22 @@ jobs:
       - name: failure
         if: ${{ failure() }}
         run: cat $(find ../ -name testlog.txt) || true
+  coverity-test:
+    runs-on: ubuntu-latest
+    if: contains(github.ref, 'coverity_scan')
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+      - name: Launch Container
+        env:
+          REPO_BRANCH: ${{ github.ref }}
+          REPO_SLUG: ${{ github.repository }}
+          ENABLE_COVERITY: true
+          DOCKER_IMAGE: ubuntu-18.04
+          CC: gcc
+          COVERITY_SCAN_TOKEN: ${{ secrets.COVERITY_SCAN_TOKEN }}
+          COVERITY_SUBMISSION_EMAIL: ${{ secrets.COVERITY_SUBMISSION_EMAIL }}
+        run: ./.ci/ci.run
+      - name: failure
+        if: ${{ failure() }}
+        run: cat $(find ../ -name testlog.txt) || true
