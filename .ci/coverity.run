@@ -34,21 +34,15 @@ echo "Running coverity build"
 # We cannot package these in the docker image, as we would be distributing their software
 # for folks not coupled to our COVERITY_SCAN_TOKEN.
 if [ ! -f "$(pwd)/cov-analysis/bin/cov-build" ]; then
-  curl --data-urlencode "project=$PROJECT" \
-       --data-urlencode "token=$COVERITY_SCAN_TOKEN" \
-       "https://scan.coverity.com/download/linux64" -o coverity_tool.tgz
-
+  wget https://scan.coverity.com/download/linux64 --post-data \
+       "token=$COVERITY_SCAN_TOKEN&project=$PROJECT" -O coverity_tool.tgz
   stat coverity_tool.tgz
-
-  curl --data-urlencode "project=$PROJECT" \
-       --data-urlencode "token=$COVERITY_SCAN_TOKEN" \
-       --data-urlencode "md5=1" \
-       "https://scan.coverity.com/download/linux64" -o coverity_tool.md5
-
+  
+  wget https://scan.coverity.com/download/linux64 --post-data \
+       "token=$COVERITY_SCAN_TOKEN&project=$PROJECT&md5=1" -O coverity_tool.md5
   stat coverity_tool.md5
-  echo "cat coverity_tool.md5"
+
   cat coverity_tool.md5
-  echo "md5sum coverity_tool.tgz"
   md5sum coverity_tool.tgz
   echo "$(cat coverity_tool.md5)" coverity_tool.tgz | md5sum -c
 
