@@ -46,7 +46,9 @@ if [ ! -f "$(pwd)/cov-analysis/bin/cov-build" ]; then
        "https://scan.coverity.com/download/linux64" -o coverity_tool.md5
 
   stat coverity_tool.md5
+  echo "cat coverity_tool.md5"
   cat coverity_tool.md5
+  echo "md5sum coverity_tool.tgz"
   md5sum coverity_tool.tgz
   echo "$(cat coverity_tool.md5)" coverity_tool.tgz | md5sum -c
 
