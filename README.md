@@ -4,6 +4,8 @@
 [![Coverity Scan](https://img.shields.io/coverity/scan/23348.svg)](https://scan.coverity.com/projects/acafons-toca)
 [![Coverage Status](https://codecov.io/gh/acafons/toca/branch/master/graph/badge.svg)](https://codecov.io/gh/acafons/toca)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/5028/badge)](https://bestpractices.coreinfrastructure.org/projects/5028)
+[![Total alerts](https://img.shields.io/lgtm/alerts/g/acafons/toca.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/acafons/toca/alerts/)
+[![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/acafons/toca.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/acafons/toca/context:cpp)
 
 # toca
 Toca
