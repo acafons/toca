@@ -11,7 +11,7 @@
 
 TLIB_BEGIN_DECLS
 
-int strcpy_s(char *dst, size_t dstsz, const char *src);
+int strcpy_s(char* dst, size_t dstsz, const char* src);
 
 TLIB_END_DECLS
 

@@ -11,7 +11,7 @@
              has a large enough size to hold the source string and its
              terminating null character. Returns 0 on success or -1 on error.
 */
-int strcpy_s(char *dst, size_t dstsz, const char *src)
+int strcpy_s(char* dst, size_t dstsz, const char* src)
 {
         if (dstsz-1 < strlen(src)) return -1;
         strcpy(dst, src);

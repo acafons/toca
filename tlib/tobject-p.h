@@ -18,12 +18,12 @@ TLIB_BEGIN_DECLS
 
 struct tobject_vtable
 {
-        int         (*tobject_hash)      (const void *);
-        bool        (*tobject_equals)    (const void *, const void *);
-        const char *(*tobject_getclass)  (const void *);
-        tobject    *(*tobject_clone)     (const void *);
-        const char *(*tobject_to_string) (const void *);
-        void        (*tobject_free)      (void *);
+        int         (*tobject_hash)      (const void*);
+        bool        (*tobject_equals)    (const void*, const void*);
+        const char* (*tobject_getclass)  (const void*);
+        tobject*    (*tobject_clone)     (const void*);
+        const char* (*tobject_to_string) (const void*);
+        void        (*tobject_free)      (void*);
 };
 
 struct tobject

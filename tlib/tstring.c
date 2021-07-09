@@ -25,17 +25,17 @@
 
 struct tstring
 {
-        tobject  parent;
-        char    *cstr;
-        int      length;
-        int      hash;
-        bool     hash_is_zero;
-        void     (*parent_free)(void *);
+        tobject parent;
+        char*   cstr;
+        int     length;
+        int     hash;
+        bool    hash_is_zero;
+        void    (*parent_free)(void* );
 };
 
-static int __tstring_hashcode(const void *this)
+static int __tstring_hashcode(const void* this)
 {
-        tstring *s = (tstring *) this;
+        tstring* s = (tstring*)this;
 
         if (s->hash || s->hash_is_zero) return s->hash;
 
@@ -47,30 +47,30 @@ static int __tstring_hashcode(const void *this)
         return s->hash;
 }
 
-static const char* __tstring_getclass(const void *this)
+static const char* __tstring_getclass(const void* this)
 {
-        tstring *s = (tstring *) this;
+        tstring* s = (tstring*)this;
         return strdup(s->parent.class_type);
 }
 
-static bool __tstring_equals(const void *this, const void *ref)
+static bool __tstring_equals(const void* this, const void* ref)
 {
         if (this == ref) return true;
 
         if (!tstring_istypeof_string(ref)) return false;
 
-        tstring *s1 = (tstring *) this;
-        tstring *s2 = (tstring *) ref;
+        tstring* s1 = (tstring*)this;
+        tstring* s2 = (tstring*)ref;
 
         if (s1->length != s2->length) return false;
 
         return memcmp(s1->cstr, s2->cstr, s1->length) == 0;
 }
 
-static tobject* __tstring_clone(const void *this)
+static tobject* __tstring_clone(const void* this)
 {
-        tstring *s = (tstring *) this;
-        tstring *d = (tstring *) malloc(sizeof(tstring));
+        tstring* s = (tstring*)this;
+        tstring* d = (tstring*)malloc(sizeof(tstring));
 
         if (!d) return NULL;
 
@@ -82,34 +82,34 @@ static tobject* __tstring_clone(const void *this)
                 return NULL;
         }
 
-        return (tobject *) d;
+        return (tobject*)d;
 }
 
-static void __tstring_free(void *this)
+static void __tstring_free(void* this)
 {
         if (!this) return;
 
-        tstring *s = (tstring *) this;
+        tstring* s = (tstring*)this;
 
         if (s->cstr) free(s->cstr);
 
-        s->parent_free((tobject *) s);
+        s->parent_free((tobject*)s);
 }
 
-static const char* __tstring_to_string(const void *this)
+static const char* __tstring_to_string(const void* this)
 {
-        tstring *s = (tstring *) this;
+        tstring* s = (tstring *)this;
         return s->cstr;
 }
 
-static int __last_indexof(char *src, int src_count, const char *tgt,
+static int __last_indexof(char* src, int src_count, const char* tgt,
                           int tgt_count, int from_index)
 {
         int roff = src_count - tgt_count;
 
         if (roff < 0 || from_index < 0) return -1;
 
-        char *p = src + roff - from_index;
+        char* p = src + roff - from_index;
 
         for (; p >= src; p--)
         {
@@ -160,13 +160,13 @@ static char* __rindex(const char* p, int c)
 }
 
 /* tstring_transform: convert string to upper or lower case. */
-static tstring* __tstring_transform(const tstring *s, int (*func)(int))
+static tstring* __tstring_transform(const tstring* s, int (*func)(int))
 {
-        tstring *newstr = NULL;
-        char    *buf    = strdup(s->cstr);
+        tstring* newstr = NULL;
+        char*    buf    = strdup(s->cstr);
 
         if (!buf) return NULL;
-    
+
         for (int i = 0; buf[i] != '\0'; i++) 
                 buf[i] = func((unsigned char) buf[i]);
         
@@ -191,8 +191,8 @@ static bool __check_bounds_off_count(int offset, int count, int length)
         return (offset < 0 || count < 0 || offset > length - count);
 }
 
-static bool __create_cstr(tstring *s, const char *v, int vlen, int offset,
-                         int len)
+static bool __create_cstr(tstring* s, const char* v, int vlen, int offset,
+                          int len)
 {
         if (__check_bounds_off_count(offset, len, vlen))
                 return false;
@@ -207,12 +207,12 @@ static bool __create_cstr(tstring *s, const char *v, int vlen, int offset,
         return true;
 }
 
-static void __save_parent_vtable(tstring *s)
+static void __save_parent_vtable(tstring* s)
 {
         s->parent_free = s->parent.vtable.tobject_free;
 }
 
-static void __override_parent_vtable(tstring *s)
+static void __override_parent_vtable(tstring* s)
 {
         s->parent.vtable.tobject_hash      = __tstring_hashcode;
         s->parent.vtable.tobject_equals    = __tstring_equals;
@@ -222,15 +222,15 @@ static void __override_parent_vtable(tstring *s)
         s->parent.vtable.tobject_to_string = __tstring_to_string;
 }
 
-static void __set_classtype_as_string(tstring *s)
+static void __set_classtype_as_string(tstring* s)
 {
         strcpy_s(s->parent.class_type, sizeof(*s->parent.class_type),
                  TLIB_CLASS_TSTRING);
 }
 
-static void __tstring_init(tstring *s)
+static void __tstring_init(tstring* s)
 {
-        tobject_init((tobject *) s);
+        tobject_init((tobject*)s);
         __set_classtype_as_string(s);
         __save_parent_vtable(s);
         __override_parent_vtable(s);
@@ -253,9 +253,9 @@ static void __tstring_init(tstring *s)
  * @return {@code true} if the string object was initialized with success;
  *         {@code false} otherwise. 
  */
-static tstring* __tstring_new(const char *v, int vlen, int offset, int len)
+static tstring* __tstring_new(const char* v, int vlen, int offset, int len)
 {
-        tstring *s = (tstring *) calloc(1, sizeof(tstring));
+        tstring* s = (tstring*)calloc(1, sizeof(tstring));
         if (!s) return NULL;
 
         if (!__create_cstr(s, v, vlen, offset, len))
@@ -280,7 +280,7 @@ static tstring* __tstring_new(const char *v, int vlen, int offset, int len)
  * @return On success, it returns a pointer to the string object allocated or
  *         NULL if insufficent memory.
  */
-tstring* tstring_new(const char *s)
+tstring* tstring_new(const char* s)
 {
         return __tstring_new(s, strlen(s), 0, strlen(s));
 }
@@ -295,7 +295,7 @@ tstring* tstring_new(const char *s)
  * @return On success, it returns a pointer to the string object allocated or
  *         NULL if insufficent memory.
  */
-tstring* tstring_new_v2(const tstring *s)
+tstring* tstring_new_v2(const tstring* s)
 {
         return __tstring_new(s->cstr, s->length, 0, s->length);
 }
@@ -313,7 +313,7 @@ tstring* tstring_new_v2(const tstring *s)
  * @return On success, it returns a pointer to the string object allocated or
  *         NULL if insufficent memory.
  */
-tstring* tstring_new_v3(const char *s, int offset, int count)
+tstring* tstring_new_v3(const char* s, int offset, int count)
 {
         return __tstring_new(s, strlen(s), offset, count);
 }
@@ -342,7 +342,7 @@ tstring* tstring_new_v4()
  * 
  * @param[in] s  The {@code tstring} object parameter.
  */
-void tstring_free(tstring *s)
+void tstring_free(tstring* s)
 {
         if (!s) return;
         s->parent.vtable.tobject_free(s);
@@ -355,9 +355,9 @@ void tstring_free(tstring *s)
  * 
  * @returns a copy of the string. 
  */
-tstring* tstring_clone(tstring *s)
+tstring* tstring_clone(tstring* s)
 {
-        return (tstring *) s->parent.vtable.tobject_clone(s);
+        return (tstring*)s->parent.vtable.tobject_clone(s);
 }
 
 /**
@@ -368,7 +368,7 @@ tstring* tstring_clone(tstring *s)
  * @returns the length of the sequence of characters represented by this
  *          object. 
  */
-int tstring_length(const tstring *s)
+int tstring_length(const tstring* s)
 {
         return s->length;
 }
@@ -381,7 +381,7 @@ int tstring_length(const tstring *s)
  * @returns {@code true} if {@link #length()} is {@code 0}, otherwise
  *          {@code false}
  */
-bool tstring_isempty(const tstring *s)
+bool tstring_isempty(const tstring* s)
 {
         return s->length == 0;
 }
@@ -401,7 +401,7 @@ bool tstring_isempty(const tstring *s)
  * @return the {@code char} value at the specified index of this string.
  *             The first {@code char} value is at index {@code 0}.
  */
-char tstring_at(const tstring *s, int index)
+char tstring_at(const tstring* s, int index)
 {
         if (index < 0)
                 index = 0;
@@ -427,7 +427,7 @@ char tstring_at(const tstring *s, int index)
  * 
  * @returns the number of characters copied or -1 if the index is out of bounds.
  */
-int tstring_getchars(const tstring *s, int src_begin, int src_end, char *dst,
+int tstring_getchars(const tstring* s, int src_begin, int src_end, char* dst,
                      int dst_begin, int dst_len)
 {
         if (__check_bounds_off_count(src_begin, src_end, dst_len))
@@ -456,7 +456,7 @@ int tstring_getchars(const tstring *s, int src_begin, int src_end, char *dst,
  * @returns {@code true} if the given object represents a {@code tstring}
  *          equivalent, {@code false} otherwise.
  */
-bool tstring_istypeof_string(const tobject *o)
+bool tstring_istypeof_string(const tobject* o)
 {
         if (!tobject_istypeof_object(o))
                 return false;
@@ -475,7 +475,7 @@ bool tstring_istypeof_string(const tobject *o)
  * @returns {@code true} if the given object represents a {@code String}
  *          equivalent to this string, {@code false} otherwise.
  */
-bool tstring_equals(const tstring *s, const tstring *ref)
+bool tstring_equals(const tstring* s, const tstring* ref)
 {
         return s->parent.vtable.tobject_equals(s, ref);
 }
@@ -494,7 +494,7 @@ bool tstring_equals(const tstring *s, const tstring *ref)
  *          represents an equivalent {@code tstring} ignoring case; {@code
  *          false} otherwise.
  */
-bool tstring_equals_ignorecase(const tstring *s, const tstring *ref)
+bool tstring_equals_ignorecase(const tstring* s, const tstring* ref)
 {
         if (s == ref)   return true;
         if (!s || !ref) return false;
@@ -518,7 +518,7 @@ bool tstring_equals_ignorecase(const tstring *s, const tstring *ref)
  *          {@code 0} if this {@code string} is greater than the string
  *          argument.
  */
-int tstring_compare(const tstring *s, const char *str)
+int tstring_compare(const tstring* s, const char* str)
 {
         return strcmp(s->cstr, str);
 }
@@ -537,7 +537,7 @@ int tstring_compare(const tstring *s, const char *str)
  *          {@code 0} if this {@code string} is greater than the string
  *          argument.
  */
-int tstring_compare_v2(const tstring *s, const tstring *str)
+int tstring_compare_v2(const tstring* s, const tstring* str)
 {
         return strcmp(s->cstr, str->cstr);
 }
@@ -557,7 +557,7 @@ int tstring_compare_v2(const tstring *s, const tstring *str)
  *          {@code 0} if this {@code string} is greater than the string
  *          argument.
  */
-int tstring_compare_ignorecase(const tstring *s, const char *str)
+int tstring_compare_ignorecase(const tstring* s, const char* str)
 {
         return __strcasecmp(s->cstr, str);
 }
@@ -577,7 +577,7 @@ int tstring_compare_ignorecase(const tstring *s, const char *str)
  *          {@code 0} if this {@code string} is greater than the string
  *          argument.
  */
-int tstring_compare_ignorecase_v2(const tstring *s, const tstring *str)
+int tstring_compare_ignorecase_v2(const tstring* s, const tstring* str)
 {
         return __strcasecmp(s->cstr, str->cstr);
 }
@@ -592,7 +592,7 @@ int tstring_compare_ignorecase_v2(const tstring *s, const tstring *str)
  *          argument is a prefix of the character sequence represented by
  *          string; {@code false} otherwise.
  */
-bool tstring_startswith(const tstring *s, const char *prefix)
+bool tstring_startswith(const tstring* s, const char* prefix)
 {
         return strncmp(s->cstr, prefix, strlen(prefix)) == 0;
 }
@@ -609,7 +609,7 @@ bool tstring_startswith(const tstring *s, const char *prefix)
  *          argument is a prefix of the substring of this object starting
  *          at index {@code offset}; {@code false} otherwise.
  */
-bool tstring_startswith_v2(const tstring *s, const char *prefix, int offset)
+bool tstring_startswith_v2(const tstring* s, const char* prefix, int offset)
 {
         if (offset < 0 || offset > (s->length - (int) strlen(prefix)))
                 return false;
@@ -627,7 +627,7 @@ bool tstring_startswith_v2(const tstring *s, const char *prefix, int offset)
  *          argument is a prefix of the character sequence represented by
  *          string; {@code false} otherwise.
  */
-bool tstring_startswith_v3(const tstring *s, const tstring *prefix)
+bool tstring_startswith_v3(const tstring* s, const tstring* prefix)
 {
         return strncmp(s->cstr, prefix->cstr, prefix->length) == 0;
 }
@@ -644,7 +644,7 @@ bool tstring_startswith_v3(const tstring *s, const tstring *prefix)
  *          argument is a prefix of the substring of this object starting
  *          at index {@code offset}; {@code false} otherwise.
  */
-bool tstring_startswith_v4(const tstring *s, const tstring *prefix, int offset)
+bool tstring_startswith_v4(const tstring* s, const tstring* prefix, int offset)
 {
         return strncmp(s->cstr + offset, prefix->cstr, prefix->length) == 0;
 }
@@ -659,7 +659,7 @@ bool tstring_startswith_v4(const tstring *s, const tstring *prefix, int offset)
  *          argument is a suffix of the character sequence represented by
  *          string; {@code false} otherwise.
  */
-bool tstring_endswith(const tstring *s, const char *suffix)
+bool tstring_endswith(const tstring* s, const char* suffix)
 {
         int index = s->length - strlen(suffix);
 
@@ -678,7 +678,7 @@ bool tstring_endswith(const tstring *s, const char *suffix)
  *          argument is a suffix of the character sequence represented by
  *          string; {@code false} otherwise.
  */
-bool tstring_endswith_v2(const tstring *s, const tstring *suffix)
+bool tstring_endswith_v2(const tstring* s, const tstring* suffix)
 {
         int index = s->length - suffix->length;
 
@@ -694,7 +694,7 @@ bool tstring_endswith_v2(const tstring *s, const tstring *suffix)
  * 
  * @returns a hash code value for this object.
  */
-int tstring_hashcode(const tstring *s)
+int tstring_hashcode(const tstring* s)
 {
         return s->parent.vtable.tobject_hash(s);
 }
@@ -710,9 +710,9 @@ int tstring_hashcode(const tstring *s)
  *          sequence represented by this object, or {@code -1} if the character
  *          does not occur.
  */
-int tstring_indexof(const tstring *s, int c)
+int tstring_indexof(const tstring* s, int c)
 {
-        char *p = __index(s->cstr, c);
+        char* p = __index(s->cstr, c);
 
         return p ? p - s->cstr : -1;
 }
@@ -729,12 +729,12 @@ int tstring_indexof(const tstring *s, int c)
  *          sequence represented by this object that is greater than or equal to
  *          {@code from_index}, or {@code -1} if the character does not occur.
  */
-int tstring_indexof_v2(const tstring *s, int c, int from_index)
+int tstring_indexof_v2(const tstring* s, int c, int from_index)
 {
         if (from_index < 0 || from_index >= s->length)
                 return -1;
 
-        char *p = __index(s->cstr + from_index, c);
+        char* p = __index(s->cstr + from_index, c);
 
         return p ? p - s->cstr : -1;
 }
@@ -749,9 +749,9 @@ int tstring_indexof_v2(const tstring *s, int c, int from_index)
  * @returns the index of the first occurrence of the specified substring, or
  *          {@code -1} if there is no such occurrence.
  */
-int tstring_indexof_v3(const tstring *s, const char *str)
+int tstring_indexof_v3(const tstring* s, const char* str)
 {
-    char *p = strstr(s->cstr, str);
+    char* p = strstr(s->cstr, str);
 
     return p ? p - s->cstr : -1;
 }
@@ -768,12 +768,12 @@ int tstring_indexof_v3(const tstring *s, const char *str)
  *          starting at the specified index, or {@code -1} if there is no
  *          such occurrence.
  */
-int tstring_indexof_v4(const tstring *s, const char *str, int from_index)
+int tstring_indexof_v4(const tstring* s, const char* str, int from_index)
 {
         if (from_index < 0 || from_index >= s->length)
                 return -1;
 
-        char *p = strstr(s->cstr + from_index, str);
+        char* p = strstr(s->cstr + from_index, str);
 
         return p ? p - s->cstr : -1;
 }
@@ -788,9 +788,9 @@ int tstring_indexof_v4(const tstring *s, const char *str, int from_index)
  * @returns the index of the first occurrence of the specified substring, or
  *          {@code -1} if there is no such occurrence.
  */
-int tstring_indexof_v5(const tstring *s, const tstring *str)
+int tstring_indexof_v5(const tstring* s, const tstring* str)
 {
-        char *p = strstr((char *)str->cstr, str->cstr);
+        char* p = strstr((char*)str->cstr, str->cstr);
 
         return p ? p - s->cstr : -1;
 }
@@ -807,12 +807,12 @@ int tstring_indexof_v5(const tstring *s, const tstring *str)
  *          starting at the specified index, or {@code -1} if there is no
  *          such occurrence.
  */
-int tstring_indexof_v6(const tstring *s, const tstring *str, int from_index)
+int tstring_indexof_v6(const tstring* s, const tstring* str, int from_index)
 {
         if (from_index < 0 || from_index >= s->length)
                 return -1;
 
-        char *p = strstr(s->cstr + from_index, str->cstr);
+        char* p = strstr(s->cstr + from_index, str->cstr);
 
         return p ? p - s->cstr : -1;
 }
@@ -828,9 +828,9 @@ int tstring_indexof_v6(const tstring *s, const tstring *str, int from_index)
  *          character sequence represented by this object, or
  *          {@code -1} if the character does not occur.
  */
-int tstring_last_indexof(const tstring *s, int c)
+int tstring_last_indexof(const tstring* s, int c)
 {
-        char *p = __rindex(s->cstr, c);
+        char* p = __rindex(s->cstr, c);
 
         return p ? p - s->cstr : -1;
 }
@@ -854,7 +854,7 @@ int tstring_last_indexof(const tstring *s, int c)
  *          {@code from_index}, or {@code -1} if the character does not occur
  *          before that point 
  */
-int tstring_last_indexof_v2(const tstring *s, int c, int from_index)
+int tstring_last_indexof_v2(const tstring* s, int c, int from_index)
 {
         int offset = from_index >= s->length ? s->length - 1 : from_index;
 
@@ -874,7 +874,7 @@ int tstring_last_indexof_v2(const tstring *s, int c, int from_index)
  * @returns the index of the last occurrence of the specified substring, or
  *          {@code -1} if there is no such occurrence.
  */
-int tstring_last_indexof_v3(const tstring *s, const char *str)
+int tstring_last_indexof_v3(const tstring* s, const char* str)
 {
         return __last_indexof(s->cstr, s->length, str, strlen(str), 0);
 }
@@ -891,7 +891,7 @@ int tstring_last_indexof_v3(const tstring *s, const char *str)
  *         searching backward from the specified index, or {@code -1} if there
  *         is no such occurrence.
  */
-int tstring_last_indexof_v4(const tstring *s, const char *str, int from_index)
+int tstring_last_indexof_v4(const tstring* s, const char* str, int from_index)
 {
         return __last_indexof(s->cstr, s->length, str, strlen(str),
                               from_index);
@@ -907,7 +907,7 @@ int tstring_last_indexof_v4(const tstring *s, const char *str, int from_index)
  * @returns the index of the last occurrence of the specified substring, or
  *          {@code -1} if there is no such occurrence.
  */
-int tstring_last_indexof_v5(const tstring *s, const tstring *str)
+int tstring_last_indexof_v5(const tstring* s, const tstring* str)
 {
         return __last_indexof(s->cstr, s->length, str->cstr, str->length, 0);
 }
@@ -924,7 +924,7 @@ int tstring_last_indexof_v5(const tstring *s, const tstring *str)
  *          searching backward from the specified index, or {@code -1} if there
  *          is no such occurrence.
  */
-int tstring_last_indexof_v6(const tstring *s, const tstring *str,
+int tstring_last_indexof_v6(const tstring* s, const tstring* str,
                             int from_index)
 {
         return __last_indexof(s->cstr, s->length, str->cstr, str->length,
@@ -942,7 +942,7 @@ int tstring_last_indexof_v6(const tstring *s, const tstring *str,
  * @returns the specified substring or NULL if wasn't possible to allocate
  *          memory for the new string or {@code begin_index} is out of bound.
  */
-tstring* tstring_substring(const tstring *s, int begin_index)
+tstring* tstring_substring(const tstring* s, int begin_index)
 {
         int count = s->length - begin_index;
 
@@ -961,7 +961,7 @@ tstring* tstring_substring(const tstring *s, int begin_index)
  * @return the specified substring or NULL if wasn't possible to allocate
  *         memory for the new string or {@code begin_index} is out of bound.
  */
-tstring* tstring_substring_v2(const tstring *s, int begin_index, int end_index)
+tstring* tstring_substring_v2(const tstring* s, int begin_index, int end_index)
 {
         if (__check_bounds_off_count(begin_index, end_index, s->length))
                 return NULL;
@@ -986,7 +986,7 @@ tstring* tstring_substring_v2(const tstring *s, int begin_index, int end_index)
  * @return a string that represents the concatenation of this object's
  *         characters followed by the string argument's characters.
  */
-tstring* tstring_concat(const tstring *s, const char *str)
+tstring* tstring_concat(const tstring* s, const char* str)
 {
         return tstring_format("%s%s", s->cstr, str);
 }
@@ -1006,7 +1006,7 @@ tstring* tstring_concat(const tstring *s, const char *str)
  * @returns a string that represents the concatenation of this object's
  *          characters followed by the string argument's characters.
  */
-tstring* tstring_concat_v2(const tstring *s, const tstring *str)
+tstring* tstring_concat_v2(const tstring* s, const tstring* str)
 {
         return tstring_format("%s%s", s->cstr, str->cstr);
 }
@@ -1031,10 +1031,10 @@ tstring* tstring_concat_v2(const tstring *s, const tstring *str)
  *          of {@code oldchar} with {@code newchar} or NULL if the occurrences
  *          does not occur.
  */
-tstring* tstring_replace(const tstring *s, char oldchar, char newchar)
+tstring* tstring_replace(const tstring* s, char oldchar, char newchar)
 {
-        tstring *newstr = NULL;
-        char    *buffer = NULL;
+        tstring* newstr = NULL;
+        char*    buffer = NULL;
         int      len    = s->length;
         int      i      = 0;
 
@@ -1042,7 +1042,7 @@ tstring* tstring_replace(const tstring *s, char oldchar, char newchar)
 
         if (i >= len) return NULL;
 
-        buffer = (char *) calloc(len + 1, sizeof(char));
+        buffer = (char*)calloc(len + 1, sizeof(char));
         if (!buffer) return NULL;
 
         memcpy(buffer, s->cstr, len);
@@ -1069,7 +1069,7 @@ tstring* tstring_replace(const tstring *s, char oldchar, char newchar)
  * 
  * @return true if this string contains {@code s}, false otherwise.
  */
-bool tstring_contains(const tstring *s, const char *str)
+bool tstring_contains(const tstring* s, const char* str)
 {
         return tstring_indexof_v3(s, str) >= 0;
 }
@@ -1083,11 +1083,11 @@ bool tstring_contains(const tstring *s, const char *str)
  * @returns the number occurences found or -1 if there is no
  *         memory enough to complete the operation. 
  */
-int tstring_count_ocurrences_of(const tstring *s, const char *str)
+int tstring_count_ocurrences_of(const tstring* s, const char* str)
 {
         int   i;
-        char *p;
-        char *save = strdup(s->cstr);
+        char* p;
+        char* save = strdup(s->cstr);
 
         if (!save) return -1;
         
@@ -1112,17 +1112,17 @@ int tstring_count_ocurrences_of(const tstring *s, const char *str)
  *          this, {@code 0} if the string wasn't splitted or -1 if there is no
  *          memory enough to allocated the string splitted. 
  */
-int tstring_split(const tstring *s, const char *delim, tstring *strings[])
+int tstring_split(const tstring* s, const char* delim, tstring* strings[])
 {
         if (!delim || !strings) return 0;
 
         int len = tstring_count_ocurrences_of(s, delim);
         if (len <= 0) return len;
 
-        char *save = strdup(s->cstr);
+        char* save = strdup(s->cstr);
         if (!save) return -1;
 
-        tstring **list = (tstring **) calloc(len, sizeof(tstring *));
+        tstring** list = (tstring **) calloc(len, sizeof(tstring *));
         if (!list) goto end;
 
         int i;
@@ -1158,7 +1158,7 @@ end:
  *         this, {@code 0} if the string wasn't splitted or -1 if there is no
  *         memory enough to allocated the string splitted. 
  */
-int tstring_split_v2(const tstring *s, const tstring *delim, tstring *strings[])
+int tstring_split_v2(const tstring* s, const tstring* delim, tstring* strings[])
 {
         return tstring_split(s, delim->cstr, strings);
 }
@@ -1170,7 +1170,7 @@ int tstring_split_v2(const tstring *s, const tstring *delim, tstring *strings[])
  * 
  * @returns the {@code tstring} converted to upper case.
  */
-tstring* tstring_to_uppercase(const tstring *s)
+tstring* tstring_to_uppercase(const tstring* s)
 {
         return __tstring_transform(s, toupper);
 }
@@ -1182,7 +1182,7 @@ tstring* tstring_to_uppercase(const tstring *s)
  * 
  * @returns the {@code tstring} converted to lower case.
  */
-tstring* tstring_to_lowercase(const tstring *s)
+tstring* tstring_to_lowercase(const tstring* s)
 {
         return __tstring_transform(s, tolower);
 }
@@ -1197,7 +1197,7 @@ tstring* tstring_to_lowercase(const tstring *s)
  *          space removed, or NULL if no memory enough to allocated to
  *          complete the operation.
  */
-tstring* tstring_trim(const tstring *s)
+tstring* tstring_trim(const tstring* s)
 {
         int l = 0;
         int r = s->length;
@@ -1218,7 +1218,7 @@ tstring* tstring_trim(const tstring *s)
  * @returns {@code true} if the string is empty or contains only codepoints,
  *          otherwise {@code false}
  */
-bool tstring_isblank(const tstring *s)
+bool tstring_isblank(const tstring* s)
 {
         int i = 0;
 
@@ -1240,7 +1240,7 @@ bool tstring_isblank(const tstring *s)
  * 
  * @returns a string representation of the {@code tstring} argument.
  */
-const char* tstring_to_string(const tstring *s)
+const char* tstring_to_string(const tstring* s)
 {
         return s->parent.vtable.tobject_to_string(s);
 }
@@ -1253,7 +1253,7 @@ const char* tstring_to_string(const tstring *s)
  * @returns a formatted string.
  */
 TLIB_GNUC_PRINTF(1, 2)
-tstring* tstring_format(const char *format, ...)
+tstring* tstring_format(const char* format, ...)
 {
         va_list args;
 
@@ -1263,14 +1263,14 @@ tstring* tstring_format(const char *format, ...)
 
         if (size < 0) return NULL;
 
-        char *p = (char *) calloc(++size, sizeof(char));
+        char* p = (char*)calloc(++size, sizeof(char));
         if (!p) return NULL;
 
         va_start(args, format);
         size = vsnprintf(p, size, format, args);
         va_end(args);
 
-        tstring *newstr = NULL;
+        tstring* newstr = NULL;
         if (size >= 0) newstr = tstring_new(p);
         
         free(p);
@@ -1288,7 +1288,7 @@ tstring* tstring_format(const char *format, ...)
  * @returns a {@code tstring} that contains the characters of the character
  *          array.
  */
-tstring* tstring_value_of(const char *s)
+tstring* tstring_value_of(const char* s)
 {
         return tstring_new(s);
 }
@@ -1309,7 +1309,7 @@ tstring* tstring_value_of(const char *s)
  * @returns a {@code tstring} that contains the characters of the character
  *          array.
  */
-tstring* string_value_of_v2(char *s, int offset, int count)
+tstring* string_value_of_v2(char* s, int offset, int count)
 {
         return tstring_new_v3(s, offset, count);
 }
@@ -1383,7 +1383,7 @@ tstring* tstring_value_of_v7(double d)
  *
  * @returns a string representation of the {@code tobject} argument.
  */
-tstring* tstring_value_of_v8(const tobject *o)
+tstring* tstring_value_of_v8(const tobject* o)
 {
         if (!tobject_istypeof_object(o)) return NULL;
 

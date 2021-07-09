@@ -12,9 +12,9 @@
 
 char *str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-static int __test_setup(void **state)
+static int __test_setup(void** state)
 {
-        tstring *s = tstring_new(str);
+        tstring* s = tstring_new(str);
 
         if (!s) return -1;
 
@@ -24,15 +24,15 @@ static int __test_setup(void **state)
 
 static int __test_teardown(void **state)
 {
-        tstring *s = (tstring *) *state;
+        tstring* s = (tstring*)*state;
         tstring_free(s);
 
         return 0;
 }
 
-static void __test_string_length(void **state)
+static void __test_string_length(void** state)
 {
-        tstring *s = (tstring *) *state;
+        tstring* s = (tstring*)*state;
         assert_int_equal(tstring_length(s), strlen(str));
 }
 

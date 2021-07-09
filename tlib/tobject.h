@@ -20,28 +20,28 @@ TLIB_BEGIN_DECLS
 typedef struct tobject tobject;
 
 TLIB_AVAILABLE_IN_ALL
-void tobject_init(tobject * const o);
+void tobject_init(tobject* const o);
 
 TLIB_AVAILABLE_IN_ALL
-void tobject_free(tobject *o);
+void tobject_free(tobject* o);
 
 TLIB_AVAILABLE_IN_ALL
-int tobject_hash(const tobject *o);
+int tobject_hash(const tobject* o);
 
 TLIB_AVAILABLE_IN_ALL
-bool tobject_equals(const tobject *o, const tobject *ref);
+bool tobject_equals(const tobject* o, const tobject* ref);
 
 TLIB_AVAILABLE_IN_ALL
-const char* tobject_getclass(const tobject *o);
+const char* tobject_getclass(const tobject* o);
 
 TLIB_AVAILABLE_IN_ALL
-tobject* tobject_clone(const tobject *o);
+tobject* tobject_clone(const tobject* o);
 
 TLIB_AVAILABLE_IN_ALL
-const char* tobject_to_string(const tobject *o);
+const char* tobject_to_string(const tobject* o);
 
 TLIB_AVAILABLE_IN_ALL
-bool tobject_istypeof_object(const tobject *o);
+bool tobject_istypeof_object(const tobject* o);
 
 TLIB_END_DECLS
 

@@ -12,7 +12,7 @@
 
 char *str = "ABCDEFGH";
 
-static int __test_setup(void **state)
+static int __test_setup(void** state)
 {
         tstring *s = tstring_new(str);
 
@@ -22,47 +22,47 @@ static int __test_setup(void **state)
         return 0;
 }
 
-static int __test_teardown(void **state)
+static int __test_teardown(void** state)
 {
-        tstring *s = (tstring *) *state;
+        tstring* s = (tstring*)*state;
         tstring_free(s);
 
         return 0;
 }
 
-static void __test_string_length(void **state)
+static void __test_string_length(void** state)
 {
-        tstring *s = (tstring *) *state;
+        tstring* s = (tstring*)*state;
         assert_int_equal(tstring_length(s), strlen(str));
 }
 
-static void __test_equal_letters(void **state)
+static void __test_equal_letters(void** state)
 {
-        tstring *s = (tstring *) *state;
+        tstring* s = (tstring*)*state;
 
         for (int i = 0; str[i] != '\0'; i++)
                 assert_true(tstring_at(s, i) == str[i]);
 }
 
-static void __test_different_letters(void **state)
+static void __test_different_letters(void** state)
 {
-        tstring *s = (tstring *) *state;
+        tstring* s = (tstring*)*state;
         char *strdiff = "GHIJKL";
 
         for (int i = 0; strdiff[i] != '\0'; i++)
                 assert_true(tstring_at(s, i) != strdiff[i]);
 }
 
-static void __test_access_negative_index(void **state)
+static void __test_access_negative_index(void** state)
 {
-        tstring *s = (tstring *) *state;
+        tstring* s = (tstring*)*state;
 
         assert_true(tstring_at(s, -1) == str[0]);
 }
 
-static void __test_access_index_out_of_bounds(void **state)
+static void __test_access_index_out_of_bounds(void** state)
 {
-        tstring *s = (tstring *) *state;
+        tstring* s = (tstring*)*state;
 
         assert_true(tstring_at(s, strlen(str) + 1) == str[strlen(str) - 1]);
 }
