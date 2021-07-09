@@ -1,5 +1,6 @@
 tlib_tests = {
         'tstring_new' : {},
+        'tstring_new_v2' : {},
         'tstring_at' : {},
 }
 
