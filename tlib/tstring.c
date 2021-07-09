@@ -270,7 +270,7 @@ static tstring* __tstring_new(const char *v, int vlen, int offset, int len)
 }
 
 /**
- * Creates a new {@code string_t} that represents the sequence of
+ * Creates a new {@code tstring} that represents the sequence of
  * characters currently contained in the character array argument. The
  * contents of the character array are copied; subsequent modification of
  * the character array does not affect the newly created string.
@@ -286,11 +286,11 @@ tstring* tstring_new(const char *s)
 }
 
 /**
- * Creates a newly {@code string_t} object so that it represents the same
+ * Creates a newly {@code tstring} object so that it represents the same
  * sequence of characters as the argument; in other words, the newly created
  * string is a copy of the argument string.
  * 
- * @param[in] s A {@code string_t} orignal parameter.
+ * @param[in] s A {@code tstring} orignal parameter.
  * 
  * @return On success, it returns a pointer to the string object allocated or
  *         NULL if insufficent memory.
@@ -301,7 +301,7 @@ tstring* tstring_new_v2(const tstring *s)
 }
 
 /**
- * Creates a new {@code string_t} that contains characters from a subarray
+ * Creates a new {@code tstring} that contains characters from a subarray
  * of the character array argument. The contents of the subarray are copied;
  * subsequent modification of the character array does not affect the newly
  * created string.
@@ -319,11 +319,11 @@ tstring* tstring_new_v3(const char *s, int offset, int count)
 }
 
 /**
- * Creates a new {@code string_t} object so that it represents
+ * Creates a new {@code tstring} object so that it represents
  * an empty character sequence.  Note that use of this constructor is
  * unnecessary since strings_t is immutable.
  * 
- * @param[in] string  The {@code string_t} object parameter.
+ * @param[in] string  The {@code tstring} object parameter.
  * 
  * @return {@code true} if the string object was initialized with success;
  *         {@code false} otherwise. 
@@ -334,13 +334,13 @@ tstring* tstring_new_v4()
 }
 
 /**
- * This function deletes a {@code string_t} object. The string handle cannot
+ * This function deletes a {@code tstring} object. The string handle cannot
  * be used anymore when this function has been called.
  * 
  * Passing in a NULL pointer in {@code string} will make this function return
  * immediately with no action.
  * 
- * @param[in] s  The {@code string_t} object parameter.
+ * @param[in] s  The {@code tstring} object parameter.
  */
 void tstring_free(tstring *s)
 {
@@ -351,7 +351,7 @@ void tstring_free(tstring *s)
 /**
  * Create an exact copy of the string.
  * 
- * @param[in] s  The {@code string_t} object parameter.
+ * @param[in] s  The {@code tstring} object parameter.
  * 
  * @returns a copy of the string. 
  */
@@ -363,7 +363,7 @@ tstring* tstring_clone(tstring *s)
 /**
  * Returns the length of this string. 
  * 
- * @param[in] string  The {@code string_t} object parameter.
+ * @param[in] string  The {@code tstring} object parameter.
  * 
  * @returns the length of the sequence of characters represented by this
  *          object. 
@@ -376,7 +376,7 @@ int tstring_length(const tstring *s)
 /**
  * Returns {@code true} if, and only if, {@link #length()} is {@code 0}. 
  * 
- * @param[in] string  The {@code string_t} object parameter.
+ * @param[in] string  The {@code tstring} object parameter.
  * 
  * @returns {@code true} if {@link #length()} is {@code 0}, otherwise
  *          {@code false}
@@ -392,7 +392,7 @@ bool tstring_isempty(const tstring *s)
  * the sequence is at index {@code 0}, the next at index {@code 1}, and so
  * on, as for array indexing.
  * 
- * @param[in] s       The {@code string_t} object parameter.
+ * @param[in] s       The {@code tstring} object parameter.
  * @param[in] index   The index of the {@code char} value. If index is less
  *                    than {@code 0}, the first position is used and if index
  *                    is greater then {@code length() - 1}, the last position
@@ -418,7 +418,7 @@ char tstring_at(const tstring *s, int index)
  * {@code src_begin} until this '\0'. The string placed in dst will not be
  * null-terminated.
  * 
- * @param[in] s          The {@code string_t} object parameter.
+ * @param[in] s          The {@code tstring} object parameter.
  * @param[in] src_begin  The source offset.
  * @param[in] src_end    The length of the source.
  * @param[in] dst        The destination buffer.
@@ -470,7 +470,7 @@ bool tstring_istypeof_string(const tobject *o)
  * object that represents the same sequence of characters as this string.
  * 
  * @param[in] s    The {@code tstring} object parameter.
- * @param[in] obj  The object to compare this {@code string_t} against.
+ * @param[in] obj  The object to compare this {@code tstring} against.
  * 
  * @returns {@code true} if the given object represents a {@code String}
  *          equivalent to this string, {@code false} otherwise.
@@ -487,7 +487,7 @@ bool tstring_equals(const tstring *s, const tstring *ref)
  * are equal ignoring case.
  * 
  * @param[in] s    The {@code tstring} object parameter.
- * @param[in] ref  The {@code tstring} to compare this {@code string_t}
+ * @param[in] ref  The {@code tstring} to compare this {@code tstring}
  *                 against
  * 
  * @returns {@code true} if the arguments are not {@code NULL} and they
@@ -528,7 +528,7 @@ int tstring_compare(const tstring *s, const char *str)
  * integer less than, equal to, or greater than zero if {@code string} is
  * found, respectively, to be less than, to match, or be greater than {@code s}.
  * 
- * @param[in] s   The {@code string_t} object parameter.
+ * @param[in] s   The {@code tstring} object parameter.
  * @param[in] s2  The string to be compared.
  * 
  * @returns the value {@code 0} if the argument {@code s} is equal to
@@ -548,7 +548,7 @@ int tstring_compare_v2(const tstring *s, const tstring *str)
  * if {@code string} is found, respectively, to be less than, to match, or be
  * greater than {@code s2}.
  * 
- * @param[in] s   The {@code string_t} object parameter.
+ * @param[in] s   The {@code tstring} object parameter.
  * @param[in] s2  The string to be compared.
  * 
  * @returns the value {@code 0} if the argument {@code s} is equal to
@@ -601,7 +601,7 @@ bool tstring_startswith(const tstring *s, const char *prefix)
  * Tests if the substring of {@code string} beginning at the specified index
  * starts with the specified prefix.
  * 
- * @param[in] s       The {@code string_t} object parameter.
+ * @param[in] s       The {@code tstring} object parameter.
  * @param[in] prefix  The prefix.
  * @param[in] offset  Where to begin looking in this string.
  * 
@@ -620,7 +620,7 @@ bool tstring_startswith_v2(const tstring *s, const char *prefix, int offset)
 /**
  * Tests if {@code string} starts with the specified prefix.
  * 
- * @param[in] s       The {@code string_t} object parameter.
+ * @param[in] s       The {@code tstring} object parameter.
  * @param[in] prefix  The prefix.
  * 
  * @returns {@code true} if the character sequence represented by the
@@ -636,7 +636,7 @@ bool tstring_startswith_v3(const tstring *s, const tstring *prefix)
  * Tests if the substring of {@code string} beginning at the specified index
  * starts with the specified prefix.
  * 
- * @param[in] s       The {@code string_t} object parameter.
+ * @param[in] s       The {@code tstring} object parameter.
  * @param[in] prefix  The prefix.
  * @param[in] offset  Where to begin looking in this string.
  * 
@@ -671,7 +671,7 @@ bool tstring_endswith(const tstring *s, const char *suffix)
 /**
  * Tests if {@code string} ends with the specified suffix.
  * 
- * @param[in] s       The {@code string_t} object parameter.
+ * @param[in] s       The {@code tstring} object parameter.
  * @param[in] suffix  The suffix.
  * 
  * @returns {@code true} if the character sequence represented by the
@@ -690,7 +690,7 @@ bool tstring_endswith_v2(const tstring *s, const tstring *suffix)
 /**
  * Returns a hash code for this string.
  * 
- * @param[in] s  The {@code string_t} object parameter.
+ * @param[in] s  The {@code tstring} object parameter.
  * 
  * @returns a hash code value for this object.
  */
@@ -703,7 +703,7 @@ int tstring_hashcode(const tstring *s)
  * Returns the index within this string of the first occurrence of the specified
  * character.
  * 
- * @param[in] s  The {@code string_t} object parameter.
+ * @param[in] s  The {@code tstring} object parameter.
  * @param[in] c  A character.
  * 
  * @returns the index of the first occurrence of the character in the character
@@ -721,7 +721,7 @@ int tstring_indexof(const tstring *s, int c)
  * Returns the index within this string of the first occurrence of the
  * specified character, starting the search at the specified index.
  * 
- * @param[in] s           The {@code string_t} object parameter.
+ * @param[in] s           The {@code tstring} object parameter.
  * @param[in] c           A character.
  * @param[in] from_index  The index to start the search from.
  * 
@@ -743,7 +743,7 @@ int tstring_indexof_v2(const tstring *s, int c, int from_index)
  * Returns the index within this string of the first occurrence of the
  * specified substring.
  * 
- * @param[in] s   The {@code string_t} object parameter.
+ * @param[in] s   The {@code tstring} object parameter.
  * @param[in] ps  The primitive substring to search for.
  * 
  * @returns the index of the first occurrence of the specified substring, or
@@ -760,7 +760,7 @@ int tstring_indexof_v3(const tstring *s, const char *str)
  * Returns the index within this string of the first occurrence of the
  * specified substring, starting at the specified index.
  * 
- * @param[in] s           The {@code string_t} object parameter.
+ * @param[in] s           The {@code tstring} object parameter.
  * @param[in] str         The substring to search for.
  * @param[in] from_index  The index from which to start the search.
  * 
@@ -782,7 +782,7 @@ int tstring_indexof_v4(const tstring *s, const char *str, int from_index)
  * Returns the index within this string of the first occurrence of the
  * specified substring.
  * 
- * @param[in] s    The {@code string_t} object parameter.
+ * @param[in] s    The {@code tstring} object parameter.
  * @param[in] str  The substring to search for.
  * 
  * @returns the index of the first occurrence of the specified substring, or
@@ -799,7 +799,7 @@ int tstring_indexof_v5(const tstring *s, const tstring *str)
  * Returns the index within this string of the first occurrence of the
  * specified substring, starting at the specified index.
  * 
- * @param[in] s           The {@code string_t} object parameter.
+ * @param[in] s           The {@code tstring} object parameter.
  * @param[in] str         The substring to search for.
  * @param[in] from_index  The index from which to start the search.
  * 
@@ -821,7 +821,7 @@ int tstring_indexof_v6(const tstring *s, const tstring *str, int from_index)
  * Returns the index within this string of the last occurrence of
  * the specified character.
  * 
- * @param[in] s  The {@code string_t} object parameter.
+ * @param[in] s  The {@code tstring} object parameter.
  * @param[in] c  A character.
  * 
  * @returns the index of the last occurrence of the character in the
@@ -839,7 +839,7 @@ int tstring_last_indexof(const tstring *s, int c)
  * Returns the index within this string of the last occurrence of the specified
  * character, searching backward starting at the specified index.
  * 
- * @param[in] s          The {@code string_t} object parameter.
+ * @param[in] s          The {@code tstring} object parameter.
  * @param[in] c           A character.
  * @param[in] from_index  The index to start the search from. There is no
  *                        restriction on the value of {@code from_index}. If it
@@ -868,7 +868,7 @@ int tstring_last_indexof_v2(const tstring *s, int c, int from_index)
  * Returns the index within this string of the last occurrence of the
  * specified substring. 
  * 
- * @param[in] s    The {@code string_t} object parameter.
+ * @param[in] s    The {@code tstring} object parameter.
  * @param[in] str  The substring to search for.
  * 
  * @returns the index of the last occurrence of the specified substring, or
@@ -883,7 +883,7 @@ int tstring_last_indexof_v3(const tstring *s, const char *str)
  * Returns the index within this string of the last occurrence of the specified
  * substring, searching backward starting at the specified index.
  * 
- * @param[in] string      The {@code string_t} object parameter.
+ * @param[in] string      The {@code tstring} object parameter.
  * @param[in] s           The substring to search for.
  * @param[in] from_index  The index to start the search from.
  * 
@@ -901,7 +901,7 @@ int tstring_last_indexof_v4(const tstring *s, const char *str, int from_index)
  * Returns the index within this string of the last occurrence of the
  * specified substring. 
  * 
- * @param[in] s    The {@code string_t} object parameter.
+ * @param[in] s    The {@code tstring} object parameter.
  * @param[in] str  The substring to search for.
  * 
  * @returns the index of the last occurrence of the specified substring, or
@@ -916,7 +916,7 @@ int tstring_last_indexof_v5(const tstring *s, const tstring *str)
  * Returns the index within this string of the last occurrence of the specified
  * substring, searching backward starting at the specified index.
  * 
- * @param[in] s           The {@code string_t} object parameter.
+ * @param[in] s           The {@code tstring} object parameter.
  * @param[in] str         The substring to search for.
  * @param[in] from_index  The index to start the search from.
  * 
@@ -936,7 +936,7 @@ int tstring_last_indexof_v6(const tstring *s, const tstring *str,
  * with the character at the specified index and extends to the end of this
  * string.
  * 
- * @param[in] s            The {@code string_t} object parameter.
+ * @param[in] s            The {@code tstring} object parameter.
  * @param[in] begin_index  The beginning index, inclusive.
  * 
  * @returns the specified substring or NULL if wasn't possible to allocate
@@ -954,7 +954,7 @@ tstring* tstring_substring(const tstring *s, int begin_index)
  * substring begins at the specified {@code begin_index} and
  * extends to the character at index {@code end_index}.
  * 
- * @param[in] s            The {@code string_t} object parameter.
+ * @param[in] s            The {@code tstring} object parameter.
  * @param[in] begin_index  The beginning index, inclusive.
  * @param[in] end_index    The ending index, exclusive.
  * 
@@ -974,12 +974,12 @@ tstring* tstring_substring_v2(const tstring *s, int begin_index, int end_index)
 /**
  * Concatenates the specified string to the end of this string.
  * If the length of the argument string is {@code 0}, then a copy of
- * {@code string_t} object is returned. Otherwise, a {@code string_t}
+ * {@code tstring} object is returned. Otherwise, a {@code tstring}
  * object is returned that represents a character sequence that is the
- * concatenation of the character sequence represented by this {@code string_t}
+ * concatenation of the character sequence represented by this {@code tstring}
  * object and the character sequence represented by the argument string.
  * 
- * @param[in] s    The {@code string_t} object parameter.
+ * @param[in] s    The {@code tstring} object parameter.
  * @param[in] str  The {@code s} that is concatenated to the end
  *                 of this {@code string}.
  * 
@@ -994,12 +994,12 @@ tstring* tstring_concat(const tstring *s, const char *str)
 /**
  * Concatenates the specified string to the end of this string.
  * If the length of the argument string is {@code 0}, then a copy of
- * {@code string_t} object is returned. Otherwise, a {@code string_t}
+ * {@code tstring} object is returned. Otherwise, a {@code tstring}
  * object is returned that represents a character sequence that is the
- * concatenation of the character sequence represented by this {@code string_t}
+ * concatenation of the character sequence represented by this {@code tstring}
  * object and the character sequence represented by the argument string.
  *
- * @param[in] s    The {@code string_t} object parameter.
+ * @param[in] s    The {@code tstring} object parameter.
  * @param[in] str  The {@code s} that is concatenated to the end
  *                 of this {@code string}.
  * 
@@ -1023,7 +1023,7 @@ tstring* tstring_concat_v2(const tstring *s, const tstring *str)
  * replaced by an occurrence of {@code newchar}.
  * 
  * 
- * @param[in] s        The {@code string_t} object parameter.
+ * @param[in] s        The {@code tstring} object parameter.
  * @param[in] oldchar  The old character.
  * @param[in] newchar  The new character.
  * 
@@ -1064,7 +1064,7 @@ tstring* tstring_replace(const tstring *s, char oldchar, char newchar)
  * Returns true if and only if this string contains the specified
  * sequence of char values.
  * 
- * @param[in] s    The {@code string_t} object parameter.
+ * @param[in] s    The {@code tstring} object parameter.
  * @param[in] str  The sequence to search for.
  * 
  * @return true if this string contains {@code s}, false otherwise.
@@ -1077,7 +1077,7 @@ bool tstring_contains(const tstring *s, const char *str)
 /**
  * Count the occurrences of the substring str in string s.
  * 
- * @param[in] s    The {@code string_t} object parameter.
+ * @param[in] s    The {@code tstring} object parameter.
  * @param[in] str  The sequence to search for.
  * 
  * @returns the number occurences found or -1 if there is no
@@ -1101,7 +1101,7 @@ int tstring_count_ocurrences_of(const tstring *s, const char *str)
 /**
  * Splits this string around matches of the given delim.
  * 
- * @param[in]  s        The {@code string_t} object parameter.
+ * @param[in]  s        The {@code tstring} object parameter.
  * @param[in]  delim    A set of bytes that delimit the tokens in the parsed
  *                      string
  * @param[out] strings  The array of strings computed by splitting this string
@@ -1147,7 +1147,7 @@ end:
 /**
  * Splits this string around matches of the given delim.
  * 
- * @param[in]  s        The {@code string_t} object parameter.
+ * @param[in]  s        The {@code tstring} object parameter.
  * @param[in]  delim    A set of bytes that delimit the tokens in the parsed
  *                      string
  * @param[out] strings  The array of strings computed by splitting this string
@@ -1166,7 +1166,7 @@ int tstring_split_v2(const tstring *s, const tstring *delim, tstring *strings[])
 /**
  * Converts all of the characters in this {@code tstring} to upper case.
  * 
- * @param[in] s  The {@code string_t} object parameter.
+ * @param[in] s  The {@code tstring} object parameter.
  * 
  * @returns the {@code tstring} converted to upper case.
  */
@@ -1178,7 +1178,7 @@ tstring* tstring_to_uppercase(const tstring *s)
 /**
  * Converts all of the characters in this {@code tstring} to lower case.
  * 
- * @param[in] s  The {@code string_t} object parameter.
+ * @param[in] s  The {@code tstring} object parameter.
  * 
  * @returns the {@code tstring} converted to lower case.
  */
@@ -1191,7 +1191,7 @@ tstring* tstring_to_lowercase(const tstring *s)
  * Returns a string whose value is this string, with all leading and trailing
  * space removed, 
  * 
- * @param[in] s  The {@code string_t} object parameter.
+ * @param[in] s  The {@code tstring} object parameter.
  * 
  * @returns a string whose value is this string, with all leading and trailing
  *          space removed, or NULL if no memory enough to allocated to
@@ -1213,7 +1213,7 @@ tstring* tstring_trim(const tstring *s)
  * Returns {@code true} if the string is empty or contains only codepoints,
  * otherwise {@code false}.
  * 
- * @param[in] s  The {@code string_t} object parameter.
+ * @param[in] s  The {@code tstring} object parameter.
  * 
  * @returns {@code true} if the string is empty or contains only codepoints,
  *          otherwise {@code false}
@@ -1236,7 +1236,7 @@ bool tstring_isblank(const tstring *s)
  * application crashes and garbage results even for reads, and additionally
  * wholesale data, stack corruption and/or security vulnerabilities for writes.
  * 
- * @param[in] s  The {@code string_t} object parameter.
+ * @param[in] s  The {@code tstring} object parameter.
  * 
  * @returns a string representation of the {@code tstring} argument.
  */
