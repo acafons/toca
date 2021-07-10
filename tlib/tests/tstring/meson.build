@@ -2,6 +2,7 @@ tlib_tests = {
         'tstring_new' : {},
         'tstring_new_v2' : {},
         'tstring_new_v3' : {},
+        'tstring_new_v4' : {},
         'tstring_at' : {},
 }
 

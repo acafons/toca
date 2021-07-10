@@ -403,7 +403,7 @@ bool tstring_isempty(const tstring* s)
  */
 char tstring_at(const tstring* s, int index)
 {
-        if (index < 0)
+        if (index <= 0)
                 index = 0;
         else if (index >= s->length)
                 index = s->length - 1;
