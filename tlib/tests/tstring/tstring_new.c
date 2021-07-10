@@ -10,7 +10,7 @@
 #include <cmocka.h>
 #include <string.h>
 
-char *str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+char* str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 static int __test_setup(void** state)
 {
@@ -22,7 +22,7 @@ static int __test_setup(void** state)
         return 0;
 }
 
-static int __test_teardown(void **state)
+static int __test_teardown(void** state)
 {
         tstring* s = (tstring*)*state;
         tstring_free(s);

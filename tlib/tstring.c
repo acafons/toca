@@ -198,7 +198,7 @@ static bool __create_cstr(tstring* s, const char* v, int vlen, int offset,
                 return false;
 
         s->length = len > 0 ? len : 0;
-        s->cstr   = (char *) calloc(s->length + 1, sizeof(char));
+        s->cstr   = (char*)calloc(s->length + 1, sizeof(char));
 
         if (!s->cstr) return false;
 
