@@ -13,12 +13,12 @@
 
 static void __test_string_free(void** state)
 {
-        char*    str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        tstring* s   = tstring_new(str);
+        tstring* s = tstring_new("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
         assert_non_null(s);
 
         tstring_free(s);
         s = NULL;
+        
         tstring_free(s);
         assert_null(s);
 }

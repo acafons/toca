@@ -10,6 +10,7 @@
 #include <cmocka.h>
 #include <string.h>
 
+
 char* str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 static void __test_string_offset(void** state)

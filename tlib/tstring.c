@@ -224,7 +224,7 @@ static void __override_parent_vtable(tstring* s)
 
 static void __set_classtype_as_string(tstring* s)
 {
-        strcpy_s(s->parent.class_type, sizeof(*s->parent.class_type),
+        strcpy_s(s->parent.class_type, sizeof(s->parent.class_type),
                  TLIB_CLASS_TSTRING);
 }
 

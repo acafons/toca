@@ -10,6 +10,7 @@
 #include <cmocka.h>
 #include <string.h>
 
+
 char *str = "ABCDEFGH";
 
 static int __test_setup(void** state)
