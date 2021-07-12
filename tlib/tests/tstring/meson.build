@@ -5,6 +5,7 @@ tlib_tests = {
         'tstring_new_v4' : {},
         'tstring_free' : {},
         'tstring_clone' : {},
+        'tstring_length' : {},
         'tstring_at' : {},
 }
 
