@@ -8,16 +8,14 @@
 #include <setjmp.h>
 #include <stdarg.h>
 #include <cmocka.h>
-#include <string.h>
 
 
 static void __test_string_not_empty(void** state)
 {
-        char* str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        tstring* s = tstring_new(str);
+        tstring* s = tstring_new("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
 
         assert_non_null(s);
-        assert_int_equal(tstring_length(s), strlen(str));
+        assert_false(tstring_isempty(s));
 
         tstring_free(s);
 }
@@ -27,7 +25,7 @@ static void __test_string_empty(void** state)
         tstring* s = tstring_new_v4();
 
         assert_non_null(s);
-        assert_int_equal(tstring_length(s), 0);
+        assert_true(tstring_isempty(s));
 
         tstring_free(s);
 }
