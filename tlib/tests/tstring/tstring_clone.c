@@ -18,7 +18,7 @@ typedef struct
         tstring* clone;
 } stringtest;
 
-static stringtest* __get_strings_to_test(stringtest* st)
+static stringtest* __create_strings_to_test(stringtest* st)
 {
         if (!(st->original = tstring_new("FGHIJKLMNOPQRSTUVWXYZ")))
                 return NULL;
@@ -37,7 +37,7 @@ static int __test_setup(void** state)
         stringtest* st = (stringtest*)malloc(sizeof(stringtest));
         if (!st) return -1;
 
-        if (!(*state = __get_strings_to_test(st)))
+        if (!(*state = __create_strings_to_test(st)))
         {
                 free(st);
                 return -1;

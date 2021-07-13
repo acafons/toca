@@ -8,6 +8,7 @@ tlib_tests = {
         'tstring_length' : {},
         'tstring_empty' : {},
         'tstring_at' : {},
+        'tstring_getchars' : {},
 }
 
 foreach test_name, extra_args : tlib_tests

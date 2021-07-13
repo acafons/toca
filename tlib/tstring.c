@@ -176,6 +176,22 @@ static tstring* __tstring_transform(const tstring* s, int (*func)(int))
 }
 
 /**
+* Check {@code begin}, {@code end} against {@code 0} and {@code length}
+* bounds.
+*
+* @param[in] begin   The initial index.
+* @param[in] end     The end index.
+* @param[in] length  The length.
+* 
+* @returns {@code true} if the string object is out of bounds;
+*          {@code false} otherwise. 
+*/
+static bool __check_bounds_begin_end(int begin, int end, int length)
+{
+        return (begin < 0 || begin > end || end > length);
+}
+
+/**
  * Check {@code offset}, {@code count} against {@code 0} and {@code length}
  * bounds.
  * 
@@ -189,6 +205,27 @@ static tstring* __tstring_transform(const tstring* s, int (*func)(int))
 static bool __check_bounds_off_count(int offset, int count, int length)
 {
         return (offset < 0 || count < 0 || offset > length - count);
+}
+
+static bool __check_bounds(const tstring* s, int src_begin, int src_end,
+                           int dst_begin, int dst_len)
+{
+        return __check_bounds_begin_end(src_begin, src_end, s->length) ||
+               __check_bounds_off_count(dst_begin, src_end - src_begin, dst_len);
+}
+
+/* get_string_size_to_copy: get the real size of the string in case there is a
+ * '\0' between begin and end.
+ */
+static int __get_string_size_to_copy(const tstring* s, int src_begin,
+                                     int src_end)
+{
+        int ulen = src_end - src_begin;
+        if (ulen == 0) return 0;
+
+        int slen = strlen(s->cstr + src_begin);
+
+        return (ulen > slen ? slen : ulen);
 }
 
 static bool __create_cstr(tstring* s, const char* v, int vlen, int offset,
@@ -419,9 +456,10 @@ char tstring_at(const tstring* s, int index)
  * null-terminated.
  * 
  * @param[in] s          The {@code tstring} object parameter.
- * @param[in] src_begin  The source offset.
- * @param[in] src_end    The length of the source.
- * @param[in] dst        The destination buffer.
+ * @param[in] src_begin  The index of the first character in the string to copy.
+ * @param[in] src_end    The index after the last character in the string to copy.
+ * @param[in] dst        The Destination array of characters in which the
+ *                       characters from String gets copied.
  * @param[in] dst_begin  The destination offset.
  * @param[in] dst_len    The length of the destination.
  * 
@@ -430,20 +468,12 @@ char tstring_at(const tstring* s, int index)
 int tstring_getchars(const tstring* s, int src_begin, int src_end, char* dst,
                      int dst_begin, int dst_len)
 {
-        if (__check_bounds_off_count(src_begin, src_end, dst_len))
+        if (__check_bounds(s, src_begin, src_end, dst_begin, dst_len))
                 return -1;
 
-        int len = src_end - src_begin;
-        if (len == 0) return 0;
+        int len = __get_string_size_to_copy(s, src_begin, src_end);
 
-        int slen = strlen(s->cstr + src_begin);
-
-        /* If len is greater than slen, it means there is a '\0' in the middle
-         * of the source string.
-         */
-        len = len > slen ? slen : len;
-
-        memcpy(dst + dst_begin, s->cstr + src_begin, len);
+        if (len > 0) memcpy(dst + dst_begin, s->cstr + src_begin, len);
 
         return len;
 }
