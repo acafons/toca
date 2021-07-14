@@ -9,6 +9,7 @@ tlib_tests = {
         'tstring_empty' : {},
         'tstring_at' : {},
         'tstring_getchars' : {},
+        'tstring_istypeof_string' : {},
 }
 
 foreach test_name, extra_args : tlib_tests

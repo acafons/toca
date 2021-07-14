@@ -458,7 +458,7 @@ char tstring_at(const tstring* s, int index)
  * @param[in] s          The {@code tstring} object parameter.
  * @param[in] src_begin  The index of the first character in the string to copy.
  * @param[in] src_end    The index after the last character in the string to copy.
- * @param[in] dst        The Destination array of characters in which the
+ * @param[in] dst        The destination array of characters in which the
  *                       characters from String gets copied.
  * @param[in] dst_begin  The destination offset.
  * @param[in] dst_len    The length of the destination.
