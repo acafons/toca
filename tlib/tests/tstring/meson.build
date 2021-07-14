@@ -10,6 +10,7 @@ tlib_tests = {
         'tstring_at' : {},
         'tstring_getchars' : {},
         'tstring_istypeof_string' : {},
+        'tstring_equals' : {},
 }
 
 foreach test_name, extra_args : tlib_tests

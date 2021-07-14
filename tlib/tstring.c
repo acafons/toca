@@ -57,7 +57,7 @@ static bool __tstring_equals(const void* this, const void* ref)
 {
         if (this == ref) return true;
 
-        if (!tstring_istypeof_string(ref)) return false;
+        if (!ref || !tstring_istypeof_string(ref)) return false;
 
         tstring* s1 = (tstring*)this;
         tstring* s2 = (tstring*)ref;
@@ -507,7 +507,7 @@ bool tstring_istypeof_string(const tobject* o)
  */
 bool tstring_equals(const tstring* s, const tstring* ref)
 {
-        return s->parent.vtable.tobject_equals(s, ref);
+        return s == ref ? true : s->parent.vtable.tobject_equals(s, ref);
 }
 
 /**
