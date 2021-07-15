@@ -56,6 +56,16 @@ static void __test_strings_case_sensitive(void** state)
         tstring_free(s2);
 }
 
+static void __test_with_non_object_string(void** state)
+{
+        tstring* s1 = tstring_new("abcdef");
+        char* s2 = "abcdef";
+
+        assert_false(tstring_equals(s1, (tstring*)s2));
+
+        tstring_free(s1);
+}
+
 int main(void)
 {
         const struct CMUnitTest tests[] = {
@@ -64,6 +74,7 @@ int main(void)
                 cmocka_unit_test(__test_string_and_null),
                 cmocka_unit_test(__test_null_and_null),
                 cmocka_unit_test(__test_strings_case_sensitive),
+                cmocka_unit_test(__test_with_non_object_string),
         };
         return cmocka_run_group_tests(tests, NULL, NULL);
 }
