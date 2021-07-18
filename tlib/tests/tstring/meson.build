@@ -13,6 +13,7 @@ tlib_tests = {
         'tstring_equals' : {},
         'tstring_equals_ignorecase' : {},
         'tstring_compare' : {},
+        'tstring_compare_v2' : {},
 }
 
 foreach test_name, extra_args : tlib_tests
