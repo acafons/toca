@@ -19,6 +19,7 @@ tlib_tests = {
         'tstring_startswith' : {},
         'tstring_startswith_v2' : {},
         'tstring_startswith_v3' : {},
+        'tstring_startswith_v4' : {},
 }
 
 foreach test_name, extra_args : tlib_tests
