@@ -18,24 +18,29 @@ typedef struct
 {
         char given[BUFFER_SIZE];
         char comparison[BUFFER_SIZE];
+        int offset;
         bool expected;
 } stringtest;
 
 stringtest st[] = {
-        {"abcdefghij", "a",          true},
-        {"abcdefghij", "ab",         true},
-        {"abcdefghij", "abc",        true},
-        {"abcdefghij", "abcd",       true},
-        {"abcdefghij", "abcdefghij", true},
-        {"abcdefghij", "k",          false},
-        {"abcdefghij", "kl",         false},
-        {"abcdefghij", "klm",        false},
-        {"mnopqrstuv", "a",          false},
-        {"mnopqrstuv", "ab",         false},
-        {"mnopqrstuv", "abc",        false}
+        {"abcdefghijk", "a",          0, true},
+        {"abcdefghijk", "ab",         0, true},
+        {"abcdefghijk", "abc",        0, true},
+        {"abcdefghijk", "abcd",       0, true},
+        {"abcdefghijk", "abcdefghij", 0, true},
+        {"abcdefghijk", "k",          0, false},
+        {"abcdefghijk", "kl",         0, false},
+        {"abcdefghijk", "klm",        1, false},
+        {"mnopqrstuvx", "a",          2, false},
+        {"mnopqrstuvx", "ab",         3, false},
+        {"mnopqrstuvx", "abc",        4, false},
+        {"abcdefghijk", "b",          1, true},
+        {"abcdefghijk", "cd",         2, true},
+        {"abcdefghijk", "efg",        4, true},
+        {"abcdefghijk", "hijk",       7, true},
 };
 
-static void __test_string_startswith(void** state)
+static void __test_string_startswith_v2(void** state)
 {
         for (size_t i = 0; i < sizeof(st)/sizeof(st[0]); i++)
         {
@@ -45,8 +50,8 @@ static void __test_string_startswith(void** state)
                 printf("Test string: given: %s, comparison: %s\n", st[i].given,
                        st[i].comparison);
 
-                assert_int_equal(tstring_startswith(s, st[i].comparison),
-                                 st[i].expected);
+                assert_int_equal(tstring_startswith_v2(s, st[i].comparison,
+                                 st[i].offset), st[i].expected);
                 tstring_free(s);
         }        
 }
@@ -54,7 +59,7 @@ static void __test_string_startswith(void** state)
 int main(void)
 {
         const struct CMUnitTest tests[] = {
-                cmocka_unit_test(__test_string_startswith),
+                cmocka_unit_test(__test_string_startswith_v2),
         };
         return cmocka_run_group_tests(tests, NULL, NULL);
 }
