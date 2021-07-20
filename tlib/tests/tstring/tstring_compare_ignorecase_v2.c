@@ -9,47 +9,66 @@
 #include <stdarg.h>
 #include <cmocka.h>
 #include <string.h>
+#include <stdio.h>
 
 
-static void __test_equal_strings(void** state)
+#define BUFFER_SIZE 20
+
+typedef struct
 {
-        tstring* s1 = tstring_new("abcdef");
-        tstring* s2 = tstring_new("abcdef");
+        char given[BUFFER_SIZE];
+        char comparison[BUFFER_SIZE];
+        int expected;
+} stringtest;
 
-        assert_int_equal(tstring_compare_ignorecase_v2(s1, s2), 0);
+stringtest st[] = {
+        {"abcdefghij", "a",            98},
+        {"abcdefghij", "ab",           99},
+        {"abcdefghij", "abc",         100},
+        {"abcdefghij", "abcd",        101},
+        {"abcdefghij", "abcdefghij",    0},
+        {"abcdefghij", "abcdffghij",   -1},
+        {"abcdefghij", "abc ffghij",   68},
+        {"a",          "abcdefghij",  -98},
+        {"ab",         "abcdefghij",  -99},
+        {"abc",        "abcdefghij", -100},
+        {"abcd",       "abcdefghij", -101},
+        {"abcdefghij", "A",            98},
+        {"abcdefghij", "AB",           99},
+        {"abcdefghij", "ABC",         100},
+        {"abcdefghij", "ABCD",        101},
+        {"abcdefghij", "ABCDEFGHIJ",    0},
+        {"abcdefghij", "ABCDFFGHIJ",   -1},
+        {"abcdefghij", "ABC FFGHIJ",   68},
+        {"a",          "ABCDEFGHIJ",  -98},
+        {"ab",         "ABCDEFGHIJ",  -99},
+        {"abc",        "ABCDEFGHIJ", -100},
+        {"abcd",       "ABCDEFGHIJ", -101},
+};
 
-        tstring_free(s1);
-        tstring_free(s2);
-}
-
-static void __test_strings_case_sensitive(void** state)
+static void __test_string_compare_ignorecase_v2(void** state)
 {
-        tstring* s1 = tstring_new("abcdef");
-        tstring* s2 = tstring_new("AbCdEf");
+        for (size_t i = 0; i < sizeof(st)/sizeof(st[0]); i++)
+        {
+                tstring* s1 = tstring_new(st[i].given);
+                tstring* s2 = tstring_new(st[i].comparison);
+                assert_non_null(s1 && s2);
 
-        assert_int_equal(tstring_compare_ignorecase_v2(s1, s2), 0);
+                printf("Test string: given: %s, comparison: %s\n", st[i].given,
+                       st[i].comparison);
 
-        tstring_free(s1);
-        tstring_free(s2);
-}
+                assert_int_equal(tstring_compare_ignorecase_v2(s1, s2),
+                                 st[i].expected);
 
-static void __test_string_greater_than_other(void** state)
-{
-        tstring* s1 = tstring_new("abcdef");
-        tstring* s2 = tstring_new("abcdefyz");
-
-        assert_int_equal(tstring_compare_ignorecase_v2(s1, s2), -121);
-
-        tstring_free(s1);
-        tstring_free(s2);
+                tstring_free(s1);
+                tstring_free(s2);
+        }        
 }
 
 int main(void)
 {
         const struct CMUnitTest tests[] = {
-                cmocka_unit_test(__test_equal_strings),
-                cmocka_unit_test(__test_strings_case_sensitive),
-                cmocka_unit_test(__test_string_greater_than_other),
+                cmocka_unit_test(__test_string_compare_ignorecase_v2),
         };
         return cmocka_run_group_tests(tests, NULL, NULL);
 }
