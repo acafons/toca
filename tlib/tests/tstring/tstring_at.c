@@ -9,92 +9,65 @@
 #include <stdarg.h>
 #include <cmocka.h>
 #include <string.h>
+#include <stdio.h>
 
 
-char *str = "ABCDEFGH";
+#define BUFFER_SIZE 20
 
-static int __test_setup(void** state)
+typedef struct
 {
-        tstring *s = tstring_new(str);
+        char given[BUFFER_SIZE];
+        char comparison;
+        int index;
+        bool expected;
+} stringtest;
 
-        if (!s) return -1;
+stringtest st[] = {
+        {"abcdefghij", 'a', -10, true},
+        {"abcdefghij", 'a',  -1, true},
+        {"abcdefghij", 'a',   0, true},
+        {"abcdefghij", 'b',   1, true},
+        {"abcdefghij", 'c',   2, true},
+        {"abcdefghij", 'd',   3, true},
+        {"abcdefghij", 'e',   4, true},
+        {"abcdefghij", 'f',   5, true},
+        {"abcdefghij", 'g',   6, true},
+        {"abcdefghij", 'h',   7, true},
+        {"abcdefghij", 'i',   8, true},
+        {"abcdefghij", 'j',   9, true},
+        {"abcdefghij", 'j',  10, true},
+        {"abcdefghij", 'j',  20, true},
+        {"abcdefghij", 'A',   0, false},
+        {"abcdefghij", 'B',   1, false},
+        {"abcdefghij", 'C',   2, false},
+        {"abcdefghij", 'D',   3, false},
+        {"abcdefghij", 'J',   9, false},
+        {"abcdefghij", 'I',   8, false},
+        {"abcdefghij", 'H',   7, false},
+        {"abcdefghij", 'G',   6, false},
+};
 
-        *state = s;
-        return 0;
-}
-
-static int __test_teardown(void** state)
+static void __test_string_at(void** state)
 {
-        tstring* s = (tstring*)*state;
-        tstring_free(s);
+        for (size_t i = 0; i < sizeof(st)/sizeof(st[0]); i++)
+        {
+                tstring* s = tstring_new(st[i].given);
+                assert_non_null(s);
 
-        return 0;
-}
+                printf("Test string: given: %s, comparison: %c\n", st[i].given,
+                       st[i].comparison);
 
-static void __test_string_length(void** state)
-{
-        tstring* s = (tstring*)*state;
-        assert_int_equal(tstring_length(s), strlen(str));
-}
+                assert_int_equal(tstring_at(s, st[i].index) == st[i].comparison,
+                                 st[i].expected);
 
-static void __test_equal_letters(void** state)
-{
-        tstring* s = (tstring*)*state;
-
-        for (int i = 0; str[i] != '\0'; i++)
-                assert_true(tstring_at(s, i) == str[i]);
-}
-
-static void __test_different_letters(void** state)
-{
-        tstring* s = (tstring*)*state;
-        char *strdiff = "GHIJKL";
-
-        for (int i = 0; strdiff[i] != '\0'; i++)
-                assert_true(tstring_at(s, i) != strdiff[i]);
-}
-
-static void __test_access_negative_index(void** state)
-{
-        tstring* s = (tstring*)*state;
-
-        assert_true(tstring_at(s, -1) == str[0]);
-}
-
-static void __test_access_index_out_of_bounds(void** state)
-{
-        tstring* s = (tstring*)*state;
-
-        assert_true(tstring_at(s, strlen(str) + 1) == str[strlen(str) - 1]);
+                tstring_free(s);
+        }        
 }
 
 int main(void)
 {
         const struct CMUnitTest tests[] = {
-                cmocka_unit_test_setup_teardown(
-                        __test_string_length,
-                        __test_setup,
-                        __test_teardown
-                ),
-                cmocka_unit_test_setup_teardown(
-                        __test_equal_letters,
-                        __test_setup,
-                        __test_teardown
-                ),
-                cmocka_unit_test_setup_teardown(
-                        __test_different_letters,
-                        __test_setup,
-                        __test_teardown
-                ),
-                cmocka_unit_test_setup_teardown(
-                        __test_access_negative_index,
-                        __test_setup,
-                        __test_teardown),
-                cmocka_unit_test_setup_teardown(
-                        __test_access_index_out_of_bounds,
-                        __test_setup,
-                        __test_teardown
-                ),
+                cmocka_unit_test(__test_string_at),
         };
         return cmocka_run_group_tests(tests, NULL, NULL);
 }
