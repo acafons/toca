@@ -9,197 +9,115 @@
 #include <stdarg.h>
 #include <cmocka.h>
 #include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 
-char* str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+#define BUFFER_SIZE 51
 
-static int __test_setup(void** state)
+typedef struct
 {
-        tstring* s = tstring_new(str);
-        if (!s) return -1;
+        char given[BUFFER_SIZE];
+        int src_begin;
+        int src_end;
+        int dst_begin;
+        int dst_len;
+        bool reuse_dst;
+        char str_expected[BUFFER_SIZE];
+        int ret_expected;
+} stringtest;
 
-        *state = s;
-        return 0;
+stringtest st[] = {
+        {"ABCDEFGHIJKLMNOPQRSTUVWXYZ", -1,  9,  0,  9, false, "", -1},
+        {"ABCDEFGHIJKLMNOPQRSTUVWXYZ",  0, -1,  0,  9, false, "", -1},
+        {"ABCDEFGHIJKLMNOPQRSTUVWXYZ",  0,  9, -1,  9, false, "", -1},
+        {"ABCDEFGHIJKLMNOPQRSTUVWXYZ",  0,  9,  0, -1, false, "", -1},
+        {"ABCDEFGHIJKLMNOPQRSTUVWXYZ",  5,  2,  0,  9, false, "", -1},
+        {"ABCDEFGHIJKLMNOPQRSTUVWXYZ",  5,  5,  0, 15, false, "",  0},
+        {"ABCDEFGHIJKLMNOPQRSTUVWXYZ",  0, 26,  0, 26, false, "ABCDEFGHIJKLMNOPQRSTUVWXYZ", 26},
+        {"ABCDEFGHIJKLMNOPQRSTUVWXYZ",  0,  5,  0,  5, false, "ABCDE",  5},
+        {"ABCDEFGHIJKLMNOPQRSTUVWXYZ", 10, 15,  0,  5, false, "KLMNO",  5},
+        {"ABCDEFGHIJKLMNOPQRSTUVWXYZ", 21, 26,  0,  5, false, "VWXYZ",  5},
+        {"ABCDEFGHIJKLMNOPQRSTUVWXYZ",  0,  4,  0, 26, false, "ABCD",  4},
+        {"ABCDEFGHIJKLMNOPQRSTUVWXYZ",  4,  8,  4, 26, true,  "ABCDEFGH",  4},
+        {"ABCDEFGHIJKLMNOPQRSTUVWXYZ",  8, 12,  8, 26, true,  "ABCDEFGHIJKL",  4},
+        {"ABCDEFGHIJKLMNOPQRSTUVWXYZ", 12, 16, 12, 26, true,  "ABCDEFGHIJKLMNOP",  4},
+        {"ABCDEFGHIJKLMNOPQRSTUVWXYZ", 16, 20, 16, 26, true,  "ABCDEFGHIJKLMNOPQRST",  4},
+        {"ABCDEFGHIJKLMNOPQRSTUVWXYZ", 20, 24, 20, 26, true,  "ABCDEFGHIJKLMNOPQRSTUVWX",  4},
+        {"ABCDEFGHIJKLMNOPQRSTUVWXYZ", 24, 26, 24, 26, true,  "ABCDEFGHIJKLMNOPQRSTUVWXYZ",  2},
+        {"abcdefghijklmnopqrstuvwxyz", -1,  9,  0,  9, false, "", -1},
+        {"abcdefghijklmnopqrstuvwxyz",  0, -1,  0,  9, false, "", -1},
+        {"abcdefghijklmnopqrstuvwxyz",  0,  9, -1,  9, false, "", -1},
+        {"abcdefghijklmnopqrstuvwxyz",  0,  9,  0, -1, false, "", -1},
+        {"abcdefghijklmnopqrstuvwxyz",  5,  2,  0,  9, false, "", -1},
+        {"abcdefghijklmnopqrstuvwxyz",  5,  5,  0, 15, false, "",  0},
+        {"abcdefghijklmnopqrstuvwxyz",  0, 26,  0, 26, false, "abcdefghijklmnopqrstuvwxyz", 26},
+        {"abcdefghijklmnopqrstuvwxyz",  0,  5,  0,  5, false, "abcde",  5},
+        {"abcdefghijklmnopqrstuvwxyz", 10, 15,  0,  5, false, "klmno",  5},
+        {"abcdefghijklmnopqrstuvwxyz", 21, 26,  0,  5, false, "vwxyz",  5},
+        {"abcdefghijklmnopqrstuvwxyz",  0,  4,  0, 26, false, "abcd",  4},
+        {"abcdefghijklmnopqrstuvwxyz",  4,  8,  4, 26, true,  "abcdefgh",  4},
+        {"abcdefghijklmnopqrstuvwxyz",  8, 12,  8, 26, true,  "abcdefghijkl",  4},
+        {"abcdefghijklmnopqrstuvwxyz", 12, 16, 12, 26, true,  "abcdefghijklmnop",  4},
+        {"abcdefghijklmnopqrstuvwxyz", 16, 20, 16, 26, true,  "abcdefghijklmnopqrst",  4},
+        {"abcdefghijklmnopqrstuvwxyz", 20, 24, 20, 26, true,  "abcdefghijklmnopqrstuvwx",  4},
+        {"abcdefghijklmnopqrstuvwxyz", 24, 26, 24, 26, true,  "abcdefghijklmnopqrstuvwxyz",  2},
+};
+
+/* is_dst_reusable: returns true if the previous dst should be reused. */
+static bool __is_dst_reusable(const stringtest* st, char* dst)
+{
+        return st->reuse_dst && dst;
 }
 
-static int __test_teardown(void** state)
+static char* __create_dst(const stringtest* st, char* dst)
 {
-        tstring* s = (tstring*)*state;
+        if (__is_dst_reusable(st, dst)) return dst;
+        if (dst) free(dst);
+
+        return (char*)calloc(sizeof(char), st->dst_len + 1);
+}
+
+static void __validate_string_getchars(const tstring* s, const stringtest* st,
+                                       char* dst)
+{
+        int r = tstring_getchars(s, st->src_begin, st->src_end, dst,
+                                 st->dst_begin, st->dst_len);
+        assert_int_equal(r, st->ret_expected);
+        assert_int_equal(strcmp(dst, st->str_expected), 0);
+}
+
+static void __validate_test_case(const stringtest* st, char** dst)
+{
+        tstring* s = tstring_new(st->given);
+        *dst = __create_dst(st, *dst);
+
+        assert_non_null(s && *dst);
+
+        __validate_string_getchars(s, st, *dst);
+
         tstring_free(s);
-
-        return 0;
 }
 
-static void __test_string_negative_src_begin(void** state)
+static void __test_string_getchars(void** state)
 {
-        char dst[10] = {0};
-        tstring* s = (tstring*)*state;
+        char* dst = NULL;
 
-        int r = tstring_getchars(s, -1, 9, dst, 0, 9);
-        assert_int_equal(r, -1);
-}
+        for (size_t i = 0; i < sizeof(st)/sizeof(st[0]); i++)
+        {
+                printf("Test (%li): given: %s, comparison: %s\n", i + 1,
+                       st[i].given, st[i].str_expected);
 
-static void __test_string_negative_src_end(void** state)
-{
-        char dst[10] = {0};
-        tstring* s = (tstring*)*state;
+                __validate_test_case(&st[i], &dst);
+        }
 
-        int r = tstring_getchars(s, 0, -1, dst, 0, 9);
-        assert_int_equal(r, -1);
-}
-
-static void __test_string_negative_dst_begin(void** state)
-{
-        char dst[10] = {0};
-        tstring* s = (tstring*)*state;
-
-        int r = tstring_getchars(s, 0, 9, dst, -1, 9);
-        assert_int_equal(r, -1);
-}
-
-static void __test_string_negative_dst_end(void** state)
-{
-        char dst[10] = {0};
-        tstring* s = (tstring*)*state;
-
-        int r = tstring_getchars(s, 0, 9, dst, 0, -1);
-        assert_int_equal(r, -1);
-}
-
-static void __test_string_src_begin_greater_end(void** state)
-{
-        char dst[10] = {0};
-        tstring* s = (tstring*)*state;
-
-        int r = tstring_getchars(s, 5, 2, dst, 0, 9);
-        assert_int_equal(r, -1);
-}
-
-static void __test_string_src_begin_equal_end(void** state)
-{
-        char dst[16] = {0};
-        tstring* s = (tstring*)*state;
-
-        int r = tstring_getchars(s, 5, 5, dst, 0, 15);
-        assert_int_equal(r, 0);
-}
-
-static void __test_string_get_all_chars(void** state)
-{
-        char dst[27] = {0};
-        tstring* s = (tstring*)*state;
-
-        int r = tstring_getchars(s, 0, 26, dst, 0, 26);
-        assert_int_equal(r, 26);
-        assert_int_equal(strcmp(str, dst), 0);
-}
-
-static void __test_string_get_first_chars(void** state)
-{
-        char dst[6] = {0};
-        tstring* s = (tstring*)*state;
-
-        int r = tstring_getchars(s, 0, 5, dst, 0, 5);
-        assert_int_equal(r, 5);
-        assert_int_equal(strncmp(str, dst, 5), 0);
-}
-
-static void __test_string_get_middle_chars(void** state)
-{
-        char dst[6] = {0};
-        tstring* s = (tstring*)*state;
-
-        int r = tstring_getchars(s, 10, 15, dst, 0, 5);
-        assert_int_equal(r, 5);
-        assert_int_equal(strncmp(str + 10, dst, 5), 0);
-}
-
-static void __test_string_get_last_chars(void** state)
-{
-        char dst[6] = {0};
-        tstring* s = (tstring*)*state;
-
-        int r = tstring_getchars(s, 21, 26, dst, 0, 5);
-        assert_int_equal(r, 5);
-        assert_int_equal(strncmp(str + 21, dst, 5), 0);
-}
-
-static void __test_string_get_chopped_chars(void** state)
-{
-        char dst[16] = {0};
-        tstring* s = (tstring*)*state;
-
-        int r = tstring_getchars(s, 0, 5, dst, 0, 15);
-        assert_int_equal(r, 5);
-        assert_string_equal("ABCDE", dst);
-
-        r = tstring_getchars(s, 10, 15, dst, 5, 15);
-        assert_int_equal(r, 5);
-        assert_string_equal("ABCDEKLMNO", dst);
-
-        r = tstring_getchars(s, 20, 25, dst, 10, 15);
-        assert_int_equal(r, 5);
-        assert_string_equal("ABCDEKLMNOUVWXY", dst);
+        free(dst);
 }
 
 int main(void)
 {
         const struct CMUnitTest tests[] = {
-                cmocka_unit_test_setup_teardown(
-                        __test_string_negative_src_begin,
-                        __test_setup,
-                        __test_teardown
-                ),
-                cmocka_unit_test_setup_teardown(
-                        __test_string_negative_src_end,
-                        __test_setup,
-                        __test_teardown
-                ),
-                cmocka_unit_test_setup_teardown(
-                        __test_string_negative_dst_begin,
-                        __test_setup,
-                        __test_teardown
-                ),
-                cmocka_unit_test_setup_teardown(
-                        __test_string_negative_dst_end,
-                        __test_setup,
-                        __test_teardown
-                ),
-                cmocka_unit_test_setup_teardown(
-                        __test_string_src_begin_greater_end,
-                        __test_setup,
-                        __test_teardown
-                ),
-                cmocka_unit_test_setup_teardown(
-                        __test_string_src_begin_equal_end,
-                        __test_setup,
-                        __test_teardown
-                ),
-                cmocka_unit_test_setup_teardown(
-                        __test_string_get_all_chars,
-                        __test_setup,
-                        __test_teardown
-                ),
-                cmocka_unit_test_setup_teardown(
-                        __test_string_get_first_chars,
-                        __test_setup,
-                        __test_teardown
-                ),
-                cmocka_unit_test_setup_teardown(
-                        __test_string_get_middle_chars,
-                        __test_setup,
-                        __test_teardown
-                ),
-                cmocka_unit_test_setup_teardown(
-                        __test_string_get_last_chars,
-                        __test_setup,
-                        __test_teardown
-                ),
-                cmocka_unit_test_setup_teardown(
-                        __test_string_get_chopped_chars,
-                        __test_setup,
-                        __test_teardown
-                ),
+                cmocka_unit_test(__test_string_getchars),
         };
         return cmocka_run_group_tests(tests, NULL, NULL);
 }
