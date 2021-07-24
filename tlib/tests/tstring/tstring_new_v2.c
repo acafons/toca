@@ -9,57 +9,85 @@
 #include <stdarg.h>
 #include <cmocka.h>
 #include <string.h>
+#include <stdio.h>
 
 
-char* str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+#define BUFFER_SIZE 101
 
-static int __test_setup(void** state)
+typedef struct
 {
-        tstring* s1 = tstring_new(str);
-        if (!s1) return -1;
+        char given[BUFFER_SIZE];
+} stringtest;
+
+stringtest st[] = {
+        {""},
+        {"a"},
+        {"ab"},
+        {"abc"},
+        {"abcd"},
+        {"abcde"},
+        {"abcdef"},
+        {"abcdefg"},
+        {"abcdefgh"},
+        {"abcdefghi"},
+        {"abcdefghij"},
+        {"abcdefghijk"},
+        {"abcdefghijkl"},
+        {"abcdefghijklm"},
+        {"abcdefghijklmn"},
+        {"abcdefghijklmno"},
+        {"abcdefghijklmnop"},
+        {"abcdefghijklmnopq"},
+        {"abcdefghijklmnopqr"},
+        {"abcdefghijklmnopqrs"},
+        {"abcdefghijklmnopqrst"},
+        {"abcdefghijklmnopqrstu"},
+        {"abcdefghijklmnopqrstuv"},
+        {"abcdefghijklmnopqrstuvw"},
+        {"abcdefghijklmnopqrstuvwx"},
+        {"abcdefghijklmnopqrstuvwxy"},
+        {"abcdefghijklmnopqrstuvwxyz"},
+        {"klmnopqrstuvxwyabcdefghijklmnopqrstuvxwyabcdefghij" \
+         "klmnopqrstuvxwyabcdefghijklmnopqrstuvxwyabcdefghij"},
+};
+
+static tstring* __create_string(char* data)
+{
+        tstring* s1 = tstring_new(data);
+        assert_non_null(s1);
 
         tstring* s2 = tstring_new_v2(s1);
+
         tstring_free(s1);
 
-        if (!s2) return -1;
-        *state = s2;
-
-        return 0;
+        return s2;
 }
 
-static int __test_teardown(void** state)
+static void __validate_string(tstring* s, stringtest* st)
 {
-        tstring* s = (tstring*)*state;
-        tstring_free(s);
-
-        return 0;
+        assert_int_equal(tstring_length(s), strlen(st->given));
+        assert_int_equal(tstring_compare(s, st->given), 0);
 }
 
-static void __test_string_length(void** state)
+static void __test_string_new_v2(void** state)
 {
-        tstring* s = (tstring*)*state;
-        assert_int_equal(tstring_length(s), strlen(str));
-}
+        for (size_t i = 0; i < sizeof(st)/sizeof(st[0]); i++)
+        {
+                printf("Test (%li): given: %s\n", i + 1, st[i].given);
 
-static void __test_string_compare(void** state)
-{
-        tstring* s = (tstring*)*state;
-        assert_int_equal(tstring_compare(s, str), 0);
+                tstring* s = __create_string(st[i].given);
+                assert_non_null(s);
+
+                __validate_string(s, &st[i]);
+
+                tstring_free(s);
+        }        
 }
 
 int main(void)
 {
         const struct CMUnitTest tests[] = {
-                cmocka_unit_test_setup_teardown(
-                        __test_string_length,
-                        __test_setup,
-                        __test_teardown
-                ),
-                cmocka_unit_test_setup_teardown(
-                        __test_string_compare,
-                        __test_setup,
-                        __test_teardown
-                ),
+                cmocka_unit_test(__test_string_new_v2),
         };
         return cmocka_run_group_tests(tests, NULL, NULL);
 }
