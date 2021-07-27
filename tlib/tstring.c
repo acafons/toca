@@ -239,7 +239,7 @@ static bool __create_cstr(tstring* s, const char* v, int vlen, int offset,
 
         if (!s->cstr) return false;
 
-        memcpy(s->cstr, v + offset, s->length);
+        if (v) memcpy(s->cstr, v + offset, s->length);
 
         return true;
 }
@@ -319,7 +319,8 @@ static tstring* __tstring_new(const char* v, int vlen, int offset, int len)
  */
 tstring* tstring_new(const char* s)
 {
-        return __tstring_new(s, strlen(s), 0, strlen(s));
+        int len = s ? strlen(s) : 0;
+        return __tstring_new(s, len, 0, len);
 }
 
 /**

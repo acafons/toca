@@ -16,7 +16,7 @@
 
 typedef struct
 {
-        char given[BUFFER_SIZE];
+        char str[BUFFER_SIZE];
 } stringtest;
 
 stringtest st[] = {
@@ -65,17 +65,17 @@ static tstring* __create_string(char* data)
 
 static void __validate_string(tstring* s, stringtest* st)
 {
-        assert_int_equal(tstring_length(s), strlen(st->given));
-        assert_int_equal(tstring_compare(s, st->given), 0);
+        assert_int_equal(tstring_length(s), strlen(st->str));
+        assert_int_equal(tstring_compare(s, st->str), 0);
 }
 
 static void __test_string_new_v2(void** state)
 {
         for (size_t i = 0; i < sizeof(st)/sizeof(st[0]); i++)
         {
-                printf("Test (%li): given: %s\n", i + 1, st[i].given);
+                printf("Test (%li): given: %s\n", i + 1, st[i].str);
 
-                tstring* s = __create_string(st[i].given);
+                tstring* s = __create_string(st[i].str);
                 assert_non_null(s);
 
                 __validate_string(s, &st[i]);

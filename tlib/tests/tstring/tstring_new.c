@@ -9,41 +9,88 @@
 #include <stdarg.h>
 #include <cmocka.h>
 #include <string.h>
+#include <stdio.h>
 
 
-char* str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+#define BUFFER_SIZE 101
 
-static int __test_setup(void** state)
+typedef struct
 {
-        tstring* s = tstring_new(str);
-        if (!s) return -1;
+        char str[BUFFER_SIZE];
+} stringtest;
 
-        *state = s;
-        return 0;
+stringtest st[] = {
+        {""},
+        {"a"},
+        {"ab"},
+        {"abc"},
+        {"abcd"},
+        {"abcde"},
+        {"abcdef"},
+        {"abcdefg"},
+        {"abcdefgh"},
+        {"abcdefghi"},
+        {"abcdefghij"},
+        {"abcdefghijk"},
+        {"abcdefghijkl"},
+        {"abcdefghijklm"},
+        {"abcdefghijklmn"},
+        {"abcdefghijklmno"},
+        {"abcdefghijklmnop"},
+        {"abcdefghijklmnopq"},
+        {"abcdefghijklmnopqr"},
+        {"abcdefghijklmnopqrs"},
+        {"abcdefghijklmnopqrst"},
+        {"abcdefghijklmnopqrstu"},
+        {"abcdefghijklmnopqrstuv"},
+        {"abcdefghijklmnopqrstuvw"},
+        {"abcdefghijklmnopqrstuvwx"},
+        {"abcdefghijklmnopqrstuvwxy"},
+        {"abcdefghijklmnopqrstuvwxyz"},
+        {"klmnopqrstuvxwyabcdefghijklmnopqrstuvxwyabcdefghij" \
+         "klmnopqrstuvxwyabcdefghijklmnopqrstuvxwyabcdefghij"},
+};
+
+static void __validate_string(tstring* s, const char* data)
+{
+        assert_int_equal(tstring_length(s), strlen(data));
+        assert_int_equal(tstring_compare(s, data), 0);
 }
 
-static int __test_teardown(void** state)
+static void __validate_test_case(const stringtest* st)
 {
-        tstring* s = (tstring*)*state;
+        tstring* s = tstring_new(st->str);
+        assert_non_null(s);
+
+        __validate_string(s, st->str);
+
         tstring_free(s);
-
-        return 0;
 }
 
-static void __test_string_length(void** state)
+static void __test_string_new(void** state)
 {
-        tstring* s = (tstring*)*state;
-        assert_int_equal(tstring_length(s), strlen(str));
+        for (size_t i = 0; i < sizeof(st)/sizeof(st[0]); i++)
+        {
+                printf("Test (%li): given: %s\n", i + 1, st[i].str);
+                __validate_test_case(&st[i]);
+        }        
+}
+
+static void __test_empty_argument(void** state)
+{
+        tstring* s = tstring_new(NULL);
+        assert_non_null(s);
+
+        __validate_string(s, "");
+
+        tstring_free(s);
 }
 
 int main(void)
 {
         const struct CMUnitTest tests[] = {
-                cmocka_unit_test_setup_teardown(
-                        __test_string_length,
-                        __test_setup,
-                        __test_teardown
-                ),
+                cmocka_unit_test(__test_string_new),
+                cmocka_unit_test(__test_empty_argument),
         };
         return cmocka_run_group_tests(tests, NULL, NULL);
 }

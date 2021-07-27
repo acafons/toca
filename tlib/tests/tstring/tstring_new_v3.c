@@ -48,7 +48,7 @@ stringtest st[] = {
 };
 
 
-static void __validate_string(const tstring* s, const char *data)
+static void __validate_string(const tstring* s, const char* data)
 {
         assert_int_equal(tstring_length(s), strlen(data));
         assert_int_equal(tstring_compare(s, data), 0);
