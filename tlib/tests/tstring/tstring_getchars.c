@@ -18,16 +18,16 @@
 typedef struct
 {
         char given[BUFFER_SIZE];
-        int src_begin;
-        int src_end;
-        int dst_begin;
-        int dst_len;
+        int  src_begin;
+        int  src_end;
+        int  dst_begin;
+        int  dst_len;
         bool reuse_dst;
         char str_expected[BUFFER_SIZE];
-        int ret_expected;
-} stringtest;
+        int  ret_expected;
+} testcase;
 
-stringtest st[] = {
+testcase tc[] = {
         {"ABCDEFGHIJKLMNOPQRSTUVWXYZ", -1,  9,  0,  9, false, "", -1},
         {"ABCDEFGHIJKLMNOPQRSTUVWXYZ",  0, -1,  0,  9, false, "", -1},
         {"ABCDEFGHIJKLMNOPQRSTUVWXYZ",  0,  9, -1,  9, false, "", -1},
@@ -65,36 +65,36 @@ stringtest st[] = {
 };
 
 /* is_dst_reusable: returns true if the previous dst should be reused. */
-static bool __is_dst_reusable(const stringtest* st, char* dst)
+static bool __is_dst_reusable(const testcase* tc, char* dst)
 {
-        return st->reuse_dst && dst;
+        return tc->reuse_dst && dst;
 }
 
-static char* __create_dst(const stringtest* st, char* dst)
+static char* __create_dst(const testcase* tc, char* dst)
 {
-        if (__is_dst_reusable(st, dst)) return dst;
+        if (__is_dst_reusable(tc, dst)) return dst;
         if (dst) free(dst);
 
-        return (char*)calloc(sizeof(char), st->dst_len + 1);
+        return (char*)calloc(sizeof(char), tc->dst_len + 1);
 }
 
-static void __validate_string_getchars(const tstring* s, const stringtest* st,
+static void __validate_string_getchars(const tstring* s, const testcase* tc,
                                        char* dst)
 {
-        int r = tstring_getchars(s, st->src_begin, st->src_end, dst,
-                                 st->dst_begin, st->dst_len);
-        assert_int_equal(r, st->ret_expected);
-        assert_int_equal(strcmp(dst, st->str_expected), 0);
+        int r = tstring_getchars(s, tc->src_begin, tc->src_end, dst,
+                                 tc->dst_begin, tc->dst_len);
+        assert_int_equal(r, tc->ret_expected);
+        assert_int_equal(strcmp(dst, tc->str_expected), 0);
 }
 
-static void __validate_test_case(const stringtest* st, char** dst)
+static void __run_test_case(const testcase* tc, char** dst)
 {
-        tstring* s = tstring_new(st->given);
-        *dst = __create_dst(st, *dst);
+        tstring* s = tstring_new(tc->given);
+        *dst = __create_dst(tc, *dst);
 
         assert_non_null(s && *dst);
 
-        __validate_string_getchars(s, st, *dst);
+        __validate_string_getchars(s, tc, *dst);
 
         tstring_free(s);
 }
@@ -103,12 +103,12 @@ static void __test_string_getchars(void** state)
 {
         char* dst = NULL;
 
-        for (size_t i = 0; i < sizeof(st)/sizeof(st[0]); i++)
+        for (size_t i = 0; i < sizeof(tc)/sizeof(tc[0]); i++)
         {
                 printf("Test (%li): given: %s, comparison: %s\n", i + 1,
-                       st[i].given, st[i].str_expected);
+                       tc[i].given, tc[i].str_expected);
 
-                __validate_test_case(&st[i], &dst);
+                __run_test_case(&tc[i], &dst);
         }
 
         free(dst);

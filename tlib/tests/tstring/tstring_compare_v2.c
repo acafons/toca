@@ -19,9 +19,9 @@ typedef struct
         char given[BUFFER_SIZE];
         char comparison[BUFFER_SIZE];
         int expected;
-} stringtest;
+} testcase;
 
-stringtest st[] = {
+testcase tc[] = {
         {"abcdefghij", "a",            98},
         {"abcdefghij", "ab",           99},
         {"abcdefghij", "abc",         100},
@@ -46,22 +46,32 @@ stringtest st[] = {
         {"abcD",       "abcdefghij",  -32},
 };
 
+static void __validate_string(const tstring* s1, const tstring* s2,
+                              const testcase* tc)
+{
+        assert_int_equal(tstring_compare_v2(s1, s2), tc->expected);
+}
+
+static void __run_test_case(const testcase* tc)
+{
+        tstring* s1 = tstring_new(tc->given);
+        tstring* s2 = tstring_new(tc->comparison);
+        assert_non_null(s1 && s2);
+
+        __validate_string(s1, s2, tc);
+
+        tstring_free(s1);
+        tstring_free(s2);
+}
+
 static void __test_string_compare_v2(void** state)
 {
-        for (size_t i = 0; i < sizeof(st)/sizeof(st[0]); i++)
+        for (size_t i = 0; i < sizeof(tc)/sizeof(tc[0]); i++)
         {
-                tstring* s1 = tstring_new(st[i].given);
-                tstring* s2 = tstring_new(st[i].comparison);
-                assert_non_null(s1 && s2);
+                printf("Test (%li): given: %s, comparison: %s\n", i + 1,
+                       tc[i].given, tc[i].comparison);
 
-                printf("Test string: given: %s, comparison: %s\n", st[i].given,
-                       st[i].comparison);
-
-                assert_int_equal(tstring_compare_v2(s1, s2),
-                                 st[i].expected);
-
-                tstring_free(s1);
-                tstring_free(s2);
+                __run_test_case(&tc[i]);
         }        
 }
 

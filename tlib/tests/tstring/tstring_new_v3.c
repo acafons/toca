@@ -31,10 +31,10 @@ typedef struct
         int count;
         void (*assert_str)(tstring*);
         char expected[BUFFER_SIZE];
-} stringtest;
+} testcase;
 
 
-stringtest st[] = {
+testcase tc[] = {
         {"ABCDEFGHIJKLMNOPQRSTUVWXYZ", 12, 14, __assert_str_non_null, "MNOPQRSTUVWXYZ"},
         {"ABCDEFGHIJKLMNOPQRSTUVWXYZ", 15,  5, __assert_str_non_null, "PQRST"},
         {"ABCDEFGHIJKLMNOPQRSTUVWXYZ", -1,  5, __assert_str_null,     ""},
@@ -47,33 +47,32 @@ stringtest st[] = {
         {"ABCDEFGHIJKLMNOPQRSTUVWXYZ", 21,  6, __assert_str_null,     ""}
 };
 
-
 static void __validate_string(const tstring* s, const char* data)
 {
         assert_int_equal(tstring_length(s), strlen(data));
         assert_int_equal(tstring_compare(s, data), 0);
 }
 
-static void __validate_test_case(const stringtest* st)
+static void __run_test_case(const testcase* tc)
 {
-        tstring* s = tstring_new_v3(st->given, st->offset, st->count);
-        st->assert_str(s);
+        tstring* s = tstring_new_v3(tc->given, tc->offset, tc->count);
+        tc->assert_str(s);
 
         if (!s) return;
 
-        __validate_string(s, st->expected);
+        __validate_string(s, tc->expected);
 
         tstring_free(s);
 }
 
 static void __test_string_new_v3(void** state)
 {
-        for (size_t i = 0; i < sizeof(st)/sizeof(st[0]); i++)
+        for (size_t i = 0; i < sizeof(tc)/sizeof(tc[0]); i++)
         {
                 printf("Test (%li): given: %s, expected: %s\n", i + 1,
-                       st[i].given, st[i].expected);
+                       tc[i].given, tc[i].expected);
 
-                __validate_test_case(&st[i]);
+                __run_test_case(&tc[i]);
         }        
 }
 

@@ -17,9 +17,9 @@
 typedef struct
 {
         char str[BUFFER_SIZE];
-} stringtest;
+} testcase;
 
-stringtest st[] = {
+testcase tc[] = {
         {""},
         {"a"},
         {"ab"},
@@ -57,22 +57,22 @@ static void __validate_string(tstring* s, const char* data)
         assert_int_equal(tstring_compare(s, data), 0);
 }
 
-static void __validate_test_case(const stringtest* st)
+static void __run_test_case(const testcase* tc)
 {
-        tstring* s = tstring_new(st->str);
+        tstring* s = tstring_new(tc->str);
         assert_non_null(s);
 
-        __validate_string(s, st->str);
+        __validate_string(s, tc->str);
 
         tstring_free(s);
 }
 
 static void __test_string_new(void** state)
 {
-        for (size_t i = 0; i < sizeof(st)/sizeof(st[0]); i++)
+        for (size_t i = 0; i < sizeof(tc)/sizeof(tc[0]); i++)
         {
-                printf("Test (%li): given: %s\n", i + 1, st[i].str);
-                __validate_test_case(&st[i]);
+                printf("Test (%li): given: %s\n", i + 1, tc[i].str);
+                __run_test_case(&tc[i]);
         }        
 }
 

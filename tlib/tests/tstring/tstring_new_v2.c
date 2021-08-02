@@ -17,9 +17,9 @@
 typedef struct
 {
         char str[BUFFER_SIZE];
-} stringtest;
+} testcase;
 
-stringtest st[] = {
+testcase tc[] = {
         {""},
         {"a"},
         {"ab"},
@@ -51,7 +51,7 @@ stringtest st[] = {
          "klmnopqrstuvxwyabcdefghijklmnopqrstuvxwyabcdefghij"},
 };
 
-static tstring* __create_string(char* data)
+static tstring* __create_string(const char* data)
 {
         tstring* s1 = tstring_new(data);
         assert_non_null(s1);
@@ -63,24 +63,29 @@ static tstring* __create_string(char* data)
         return s2;
 }
 
-static void __validate_string(tstring* s, stringtest* st)
+static void __validate_string(const tstring* s, const testcase* tc)
 {
-        assert_int_equal(tstring_length(s), strlen(st->str));
-        assert_int_equal(tstring_compare(s, st->str), 0);
+        assert_int_equal(tstring_length(s), strlen(tc->str));
+        assert_int_equal(tstring_compare(s, tc->str), 0);
+}
+
+static void __run_test_case(const testcase* tc)
+{
+        tstring* s = __create_string(tc->str);
+        assert_non_null(s);
+
+        __validate_string(s, tc);
+
+        tstring_free(s);
 }
 
 static void __test_string_new_v2(void** state)
 {
-        for (size_t i = 0; i < sizeof(st)/sizeof(st[0]); i++)
+        for (size_t i = 0; i < sizeof(tc)/sizeof(tc[0]); i++)
         {
-                printf("Test (%li): given: %s\n", i + 1, st[i].str);
+                printf("Test (%li): given: %s\n", i + 1, tc[i].str);
 
-                tstring* s = __create_string(st[i].str);
-                assert_non_null(s);
-
-                __validate_string(s, &st[i]);
-
-                tstring_free(s);
+                __run_test_case(&tc[i]);
         }        
 }
 
