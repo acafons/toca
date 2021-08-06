@@ -310,7 +310,8 @@ static tstring* __tstring_new(const char* v, int vlen, int offset, int len)
  * Creates a new {@code tstring} that represents the sequence of
  * characters currently contained in the character array argument. The
  * contents of the character array are copied; subsequent modification of
- * the character array does not affect the newly created string.
+ * the character array does not affect the newly created string. A NULL
+ * argument creates an empty string.
  * 
  * @param[in] s  The initial value of the string.
  * 
@@ -326,7 +327,8 @@ tstring* tstring_new(const char* s)
 /**
  * Creates a newly {@code tstring} object so that it represents the same
  * sequence of characters as the argument; in other words, the newly created
- * string is a copy of the argument string.
+ * string is a copy of the argument string. A NULL argument creates an empty
+ * string.
  * 
  * @param[in] s A {@code tstring} orignal parameter.
  * 
@@ -351,7 +353,7 @@ tstring* tstring_new_v2(const tstring* s)
  * Creates a new {@code tstring} that contains characters from a subarray
  * of the character array argument. The contents of the subarray are copied;
  * subsequent modification of the character array does not affect the newly
- * created string.
+ * created string. A NULL argument creates an empty string.
  * 
  * @param[in] s       Array that is the source of characters.
  * @param[in] offset  The initial offset.
