@@ -63,10 +63,10 @@ static tstring* __create_string(const char* data)
         return s2;
 }
 
-static void __validate_string(const tstring* s, const testcase* tc)
+static void __validate_string(const tstring* s, const char* data)
 {
-        assert_int_equal(tstring_length(s), strlen(tc->str));
-        assert_int_equal(tstring_compare(s, tc->str), 0);
+        assert_int_equal(tstring_length(s), strlen(data));
+        assert_int_equal(tstring_compare(s, data), 0);
 }
 
 static void __run_test_case(const testcase* tc)
@@ -74,7 +74,7 @@ static void __run_test_case(const testcase* tc)
         tstring* s = __create_string(tc->str);
         assert_non_null(s);
 
-        __validate_string(s, tc);
+        __validate_string(s, tc->str);
 
         tstring_free(s);
 }
@@ -89,10 +89,21 @@ static void __test_string_new_v2(void** state)
         }        
 }
 
+static void __test_null_argument(void** state)
+{
+        tstring* s = tstring_new_v2(NULL);
+        assert_non_null(s);
+
+        __validate_string(s, "");
+
+        tstring_free(s);
+}
+
 int main(void)
 {
         const struct CMUnitTest tests[] = {
                 cmocka_unit_test(__test_string_new_v2),
+                cmocka_unit_test(__test_null_argument),
         };
         return cmocka_run_group_tests(tests, NULL, NULL);
 }

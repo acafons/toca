@@ -335,7 +335,16 @@ tstring* tstring_new(const char* s)
  */
 tstring* tstring_new_v2(const tstring* s)
 {
-        return __tstring_new(s->cstr, s->length, 0, s->length);
+        char* str = NULL;
+        int len = 0;
+
+        if (s)
+        {
+                str = s->cstr;
+                len = s->length;
+        }
+
+        return __tstring_new(str, len, 0, len);
 }
 
 /**

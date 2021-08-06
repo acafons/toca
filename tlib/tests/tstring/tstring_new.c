@@ -76,7 +76,7 @@ static void __test_string_new(void** state)
         }        
 }
 
-static void __test_empty_argument(void** state)
+static void __test_null_argument(void** state)
 {
         tstring* s = tstring_new(NULL);
         assert_non_null(s);
@@ -90,7 +90,7 @@ int main(void)
 {
         const struct CMUnitTest tests[] = {
                 cmocka_unit_test(__test_string_new),
-                cmocka_unit_test(__test_empty_argument),
+                cmocka_unit_test(__test_null_argument),
         };
         return cmocka_run_group_tests(tests, NULL, NULL);
 }
