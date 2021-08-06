@@ -76,10 +76,21 @@ static void __test_string_new_v3(void** state)
         }        
 }
 
+static void __test_null_argument(void** state)
+{
+        tstring* s = tstring_new_v3(NULL, 0, 0);
+        assert_non_null(s);
+
+        __validate_string(s, "");
+
+        tstring_free(s);
+}
+
 int main(void)
 {
         const struct CMUnitTest tests[] = {
                 cmocka_unit_test(__test_string_new_v3),
+                cmocka_unit_test(__test_null_argument),
         };
         return cmocka_run_group_tests(tests, NULL, NULL);
 }

@@ -362,7 +362,8 @@ tstring* tstring_new_v2(const tstring* s)
  */
 tstring* tstring_new_v3(const char* s, int offset, int count)
 {
-        return __tstring_new(s, strlen(s), offset, count);
+        int len = s ? strlen(s) : 0;
+        return __tstring_new(s, len, offset, count);
 }
 
 /**
