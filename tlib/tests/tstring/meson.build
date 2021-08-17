@@ -22,6 +22,7 @@ tlib_tests = {
         'tstring_startswith_v4' : {},
         'tstring_endswith' : {},
         'tstring_endswith_v2' : {},
+        'tstring_hashcode' : {},
 }
 
 foreach test_name, extra_args : tlib_tests
