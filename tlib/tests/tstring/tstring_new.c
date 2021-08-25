@@ -71,7 +71,7 @@ static void __test_string_new(void** state)
 {
         for (size_t i = 0; i < sizeof(tc)/sizeof(tc[0]); i++)
         {
-                printf("Test (%li): given: %s\n", i + 1, tc[i].str);
+                printf("Test (%zu): given: %s\n", i + 1, tc[i].str);
                 __run_test_case(&tc[i]);
         }        
 }

@@ -17,9 +17,9 @@
 
 typedef struct
 {
-        char str[BUFFER_SIZE];
-        int  hashcode;
-        bool expect;
+        char     str[BUFFER_SIZE];
+        uint32_t hashcode;
+        bool     expect;
 } testcase;
 
 testcase tc[] = {
@@ -85,7 +85,8 @@ testcase tc[] = {
 
 static void __validate_string(tstring* s, const testcase* tc)
 {
-        assert_int_equal((tstring_hashcode(s)) == tc->hashcode, tc->expect);
+        assert_int_equal(((uint32_t)tstring_hashcode(s)) == tc->hashcode,
+                         tc->expect);
 }
 
 static void __run_test_case(const testcase* tc)
@@ -102,7 +103,7 @@ static void __test_string_hashcode(void** state)
 {
         for (size_t i = 0; i < sizeof(tc)/sizeof(tc[0]); i++)
         {
-                printf("Test (%li): given: %s\n", i + 1, tc[i].str);
+                printf("Test (%zu): given: %s\n", i + 1, tc[i].str);
                 __run_test_case(&tc[i]);
         }        
 }
