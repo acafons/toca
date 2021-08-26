@@ -120,6 +120,16 @@ static int __last_indexof(char* src, int src_count, const char* tgt,
         return -1;
 }
 
+/* strcmp: compares the two strings s1 and s2 */
+static int __strcmp(const char *s1, const char *s2)
+{
+        while (*s1 == *s2++)
+                if (*s1++ == 0)
+                        return (0);
+
+        return (*(unsigned char *)s1 - *(unsigned char *)--s2);
+}
+
 /* strcasecmp: compare S1 and S2, ignoring case. */
 static int __strcasecmp(const char* s1, const char* s2)
 {
@@ -563,7 +573,7 @@ bool tstring_equals_ignorecase(const tstring* s, const tstring* ref)
  */
 int tstring_compare(const tstring* s, const char* str)
 {
-        return strcmp(s->cstr, str);
+        return __strcmp(s->cstr, str);
 }
 
 /**
@@ -582,7 +592,7 @@ int tstring_compare(const tstring* s, const char* str)
  */
 int tstring_compare_v2(const tstring* s, const tstring* str)
 {
-        return strcmp(s->cstr, str->cstr);
+        return __strcmp(s->cstr, str->cstr);
 }
 
 /**
