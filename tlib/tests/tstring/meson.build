@@ -23,6 +23,12 @@ tlib_tests = {
         'tstring_endswith' : {},
         'tstring_endswith_v2' : {},
         'tstring_hashcode' : {},
+        'tstring_indexof' : {},
+        'tstring_indexof_v2' : {},
+        'tstring_indexof_v3' : {},
+        'tstring_indexof_v4' : {},
+        'tstring_indexof_v5' : {},
+        'tstring_indexof_v6' : {},
 }
 
 foreach test_name, extra_args : tlib_tests

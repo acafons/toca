@@ -843,7 +843,7 @@ int tstring_indexof_v4(const tstring* s, const char* str, int from_index)
  */
 int tstring_indexof_v5(const tstring* s, const tstring* str)
 {
-        char* p = strstr((char*)str->cstr, str->cstr);
+        char* p = strstr(s->cstr, str->cstr);
 
         return p ? p - s->cstr : -1;
 }
