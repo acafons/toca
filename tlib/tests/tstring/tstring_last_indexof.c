@@ -39,12 +39,12 @@ testcase tc[] = {
         {"abcdefghij",    'o', -1},
         {"abcdefghij",    'p', -1},
         {"abcdefghij",    'q', -1},
-        {"aaaaaaaaaa",    'a',  0},
-        {"baaaaaaaaj",    'a',  1},
-        {"bcaaaaaaij",    'a',  2},
-        {"bcdaaaahij",    'a',  3},
-        {"bcdeaaghij",    'a',  4},
-        {"bcdefaghij",    'a',  5},
+        {"aaaaaaaaaa",    'a',  9},
+        {"baaaaaaaaj",    'a',  8},
+        {"bcaaaaaaij",    'a',  7},
+        {"bcdaaaahij",    'a',  6},
+        {"bcdeaaghij",    'a',  5},
+        {"bcdeafghij",    'a',  4},
         {"abcdefghij",      1, -1},
         {"abcdefghij",     10, -1},
         {"abcdefghij",    100,  3},
@@ -55,7 +55,7 @@ testcase tc[] = {
 
 static void __validate_string(const tstring* s, const testcase* tc)
 {
-        assert_int_equal(tstring_indexof(s, tc->comparison), tc->expected);
+        assert_int_equal(tstring_last_indexof(s, tc->comparison), tc->expected);
 }
 
 static void __run_test_case(const testcase* tc)
@@ -68,7 +68,7 @@ static void __run_test_case(const testcase* tc)
         tstring_free(s);
 }
 
-static void __test_string_indexof(void** state)
+static void __test_string_last_indexof(void** state)
 {
         for (size_t i = 0; i < sizeof(tc)/sizeof(tc[0]); i++)
         {
@@ -82,7 +82,7 @@ static void __test_string_indexof(void** state)
 int main(void)
 {
         const struct CMUnitTest tests[] = {
-                cmocka_unit_test(__test_string_indexof),
+                cmocka_unit_test(__test_string_last_indexof),
         };
         return cmocka_run_group_tests(tests, NULL, NULL);
 }

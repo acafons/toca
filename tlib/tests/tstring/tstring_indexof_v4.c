@@ -53,6 +53,7 @@ testcase tc[] = {
         {"abcdefghij",   "jl",          3, -1},
         {"abcdefghij",  "abc",          0,  0},
         {"abcdefghij",  "abc",          1, -1},
+        {"abcabcghij",  "abc",          1,  3},
         {"abcdefghij",  "bcd",          0,  1},
         {"abcdefghij",  "bcd",          2, -1},
         {"abcdefghij",  "cde",          1,  2},
@@ -71,6 +72,7 @@ testcase tc[] = {
         {"abcdefghij",  "abcdefghijk",  0, -1},
         {"abcdefghij",  "wxyz",        -1, -1},
         {"abcdefghij",  "wxyz",        10, -1},
+        {"jabcabcabc",  "abc",          0,  1},
 };
 
 static void __validate_string(const tstring* s, const testcase* tc)

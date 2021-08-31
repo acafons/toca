@@ -29,6 +29,12 @@ tlib_tests = {
         'tstring_indexof_v4' : {},
         'tstring_indexof_v5' : {},
         'tstring_indexof_v6' : {},
+        'tstring_last_indexof' : {},
+        'tstring_last_indexof_v2' : {},
+        'tstring_last_indexof_v3' : {},
+        'tstring_last_indexof_v4' : {},
+        'tstring_last_indexof_v5' : {},
+        'tstring_last_indexof_v6' : {},
 }
 
 foreach test_name, extra_args : tlib_tests

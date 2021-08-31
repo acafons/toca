@@ -23,16 +23,16 @@ typedef struct
 } testcase;
 
 testcase tc[] = {
-        {"abcdefghij",    'a',  0,  0},
-        {"abcdefghij",    'b',  0,  1},
-        {"abcdefghij",    'c',  0,  2},
-        {"abcdefghij",    'd',  0,  3},
-        {"abcdefghij",    'e',  0,  4},
-        {"abcdefghij",    'f',  0,  5},
-        {"abcdefghij",    'g',  0,  6},
-        {"abcdefghij",    'h',  0,  7},
-        {"abcdefghij",    'i',  0,  8},
-        {"abcdefghij",    'j',  0,  9},
+        {"abcdefghij",    'a',  9,  0},
+        {"abcdefghij",    'b',  9,  1},
+        {"abcdefghij",    'c',  9,  2},
+        {"abcdefghij",    'd',  9,  3},
+        {"abcdefghij",    'e',  9,  4},
+        {"abcdefghij",    'f',  9,  5},
+        {"abcdefghij",    'g',  9,  6},
+        {"abcdefghij",    'h',  9,  7},
+        {"abcdefghij",    'i',  9,  8},
+        {"abcdefghij",    'j',  9,  9},
         {"abcdefghij",    'b',  1,  1},
         {"abcdefghij",    'c',  2,  2},
         {"abcdefghij",    'd',  3,  3},
@@ -42,36 +42,37 @@ testcase tc[] = {
         {"abcdefghij",    'h',  7,  7},
         {"abcdefghij",    'i',  8,  8},
         {"abcdefghij",    'j',  9,  9},
-        {"abcdefghij",    'b',  0,  1},
-        {"abcdefghij",    'c',  0,  2},
-        {"abcdefghij",    'd',  1,  3},
-        {"abcdefghij",    'e',  2,  4},
-        {"abcdefghij",    'f',  3,  5},
-        {"abcdefghij",    'g',  0,  6},
-        {"abcdefghij",    'h',  1,  7},
-        {"abcdefghij",    'i',  2,  8},
-        {"abcdefghij",    'j',  3,  9},
-        {"abcdefghij",    'k',  0, -1},
-        {"abcdefghij",    'l',  1, -1},
-        {"abcdefghij",    'm',  2, -1},
-        {"abcdefghij",    'n',  3, -1},
-        {"abcdefghij",    'o',  4, -1},
-        {"abcdefghij",    'p',  5, -1},
-        {"abcdefghij",    'q',  6, -1},
-        {"aaaaaaaaaa",    'a',  0,  0},
-        {"baaaaaaaaj",    'a',  0,  1},
-        {"bcaaaaaaij",    'a',  0,  2},
-        {"bcdaaaahij",    'a',  0,  3},
-        {"bcdeaaghij",    'a',  0,  4},
-        {"bcdefaghij",    'a',  0,  5},
-        {"baaaaaaaaj",    'a',  1,  1},
-        {"bcaaaaaaij",    'a',  2,  2},
-        {"bcdaaaahij",    'a',  3,  3},
-        {"bcdeaaghij",    'a',  4,  4},
-        {"bcdefaghij",    'a',  5,  5},
+        {"abcdefghij",    'b',  2,  1},
+        {"abcdefghij",    'c',  2,  2},
+        {"abcdefghij",    'd',  5,  3},
+        {"abcdefghij",    'e',  6,  4},
+        {"abcdefghij",    'f',  7,  5},
+        {"abcdefghij",    'g',  7,  6},
+        {"abcdefghij",    'h',  8,  7},
+        {"abcdefghij",    'i',  9,  8},
+        {"abcdefghij",    'j', 10,  9},
+        {"abcdefghij",    'k',  9, -1},
+        {"abcdefghij",    'l',  8, -1},
+        {"abcdefghij",    'm',  7, -1},
+        {"abcdefghij",    'n',  6, -1},
+        {"abcdefghij",    'o',  5, -1},
+        {"abcdefghij",    'p',  4, -1},
+        {"abcdefghij",    'q',  3, -1},
+        {"aaaaaaaaaa",    'a',  9,  9},
+        {"baaaaaaaaj",    'a',  8,  8},
+        {"bcaaaaaaij",    'a',  7,  7},
+        {"bcdaaaahij",    'a',  6,  6},
+        {"bcdeaaghij",    'a',  5,  5},
+        {"bcdeafghij",    'a',  4,  4},
+        {"aaaaaaaaaa",    'a',  9,  9},
+        {"baaaaaaaaj",    'a',  9,  8},
+        {"bcaaaaaaij",    'a',  9,  7},
+        {"bcdaaaahij",    'a',  9,  6},
+        {"bcdeaaghij",    'a',  9,  5},
+        {"bcdeafghij",    'a',  9,  4},
         {"abcdefghij",      1,  0, -1},
         {"abcdefghij",     10,  1, -1},
-        {"abcdefghij",    100,  2,  3},
+        {"abcdefghij",    100,  2, -1},
         {"abcdefghij",   1000,  3, -1},
         {"abcdefghij",  10000,  4, -1},
         {"abcdefghij", 100000,  5, -1},
@@ -81,8 +82,8 @@ testcase tc[] = {
 
 static void __validate_string(const tstring* s, const testcase* tc)
 {
-        assert_int_equal(tstring_indexof_v2(s, tc->comparison, tc->from_index),
-                         tc->expected);
+        assert_int_equal(tstring_last_indexof_v2(s, tc->comparison,
+                         tc->from_index), tc->expected);
 }
 
 static void __run_test_case(const testcase* tc)
@@ -95,7 +96,7 @@ static void __run_test_case(const testcase* tc)
         tstring_free(s);
 }
 
-static void __test_string_indexof_v2(void** state)
+static void __test_string_last_indexof_v2(void** state)
 {
         for (size_t i = 0; i < sizeof(tc)/sizeof(tc[0]); i++)
         {
@@ -109,7 +110,7 @@ static void __test_string_indexof_v2(void** state)
 int main(void)
 {
         const struct CMUnitTest tests[] = {
-                cmocka_unit_test(__test_string_indexof_v2),
+                cmocka_unit_test(__test_string_last_indexof_v2),
         };
         return cmocka_run_group_tests(tests, NULL, NULL);
 }

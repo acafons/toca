@@ -66,12 +66,12 @@ testcase tc[] = {
         {"abcdefgh   ", "   ",          8},
         {"abcdefghij",  "abcdefghij",   0},
         {"abcdefghij",  "abcdefghijk", -1},
-        {"defabcabcj",  "abc",          3},
+        {"abcabcabca",  "abc",          6},
 };
 
 static void __validate_string(const tstring* s, const testcase* tc)
 {
-        assert_int_equal(tstring_indexof_v3(s, tc->comparison), tc->expected);
+        assert_int_equal(tstring_last_indexof_v3(s, tc->comparison), tc->expected);
 }
 
 static void __run_test_case(const testcase* tc)
@@ -84,7 +84,7 @@ static void __run_test_case(const testcase* tc)
         tstring_free(s);
 }
 
-static void __test_string_indexof_v3(void** state)
+static void __test_string_last_indexof_v3(void** state)
 {
         for (size_t i = 0; i < sizeof(tc)/sizeof(tc[0]); i++)
         {
@@ -98,7 +98,7 @@ static void __test_string_indexof_v3(void** state)
 int main(void)
 {
         const struct CMUnitTest tests[] = {
-                cmocka_unit_test(__test_string_indexof_v3),
+                cmocka_unit_test(__test_string_last_indexof_v3),
         };
         return cmocka_run_group_tests(tests, NULL, NULL);
 }

@@ -53,6 +53,8 @@ testcase tc[] = {
         {"abcdefghij",   "jl",          3, -1},
         {"abcdefghij",  "abc",          0,  0},
         {"abcdefghij",  "abc",          1, -1},
+        {"abcabcghij",  "abc",          1,  3},
+        {"jabcabcghi",  "abc",          0,  1},
         {"abcdefghij",  "bcd",          0,  1},
         {"abcdefghij",  "bcd",          2, -1},
         {"abcdefghij",  "cde",          1,  2},

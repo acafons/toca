@@ -105,11 +105,9 @@ static const char* __tstring_to_string(const void* this)
 static int __last_indexof(char* src, int src_count, const char* tgt,
                           int tgt_count, int from_index)
 {
-        int roff = src_count - tgt_count;
-
-        if (roff < 0 || from_index < 0) return -1;
-
-        char* p = src + roff - from_index;
+        if (from_index < 0) return -1;
+        
+        char* p = src + (from_index >= src_count ? src_count - 1 : from_index);
 
         for (; p >= src; p--)
         {
@@ -929,7 +927,8 @@ int tstring_last_indexof_v2(const tstring* s, int c, int from_index)
  */
 int tstring_last_indexof_v3(const tstring* s, const char* str)
 {
-        return __last_indexof(s->cstr, s->length, str, strlen(str), 0);
+        return __last_indexof(s->cstr, s->length, str, strlen(str),
+                              s->length - 1);
 }
 
 /**
@@ -962,7 +961,8 @@ int tstring_last_indexof_v4(const tstring* s, const char* str, int from_index)
  */
 int tstring_last_indexof_v5(const tstring* s, const tstring* str)
 {
-        return __last_indexof(s->cstr, s->length, str->cstr, str->length, 0);
+        return __last_indexof(s->cstr, s->length, str->cstr, str->length,
+                              s->length - 1);
 }
 
 /**
