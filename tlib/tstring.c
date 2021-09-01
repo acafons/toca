@@ -999,6 +999,8 @@ tstring* tstring_substring(const tstring* s, int begin_index)
 {
         int count = s->length - begin_index;
 
+        if (count <= 0) return NULL;
+
         return tstring_new_v3(s->cstr, begin_index, count);
 }
 
@@ -1016,9 +1018,6 @@ tstring* tstring_substring(const tstring* s, int begin_index)
  */
 tstring* tstring_substring_v2(const tstring* s, int begin_index, int end_index)
 {
-        if (__check_bounds_off_count(begin_index, end_index, s->length))
-                return NULL;
-    
         int count = end_index - begin_index;
 
         return tstring_new_v3(s->cstr, begin_index, count);

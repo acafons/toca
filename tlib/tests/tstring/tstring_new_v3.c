@@ -14,15 +14,8 @@
 
 #define BUFFER_SIZE 101
 
-static void __assert_str_non_null(tstring* s)
-{
-        assert_non_null(s);
-}
-
-static void __assert_str_null(tstring* s)
-{
-        assert_null(s);
-}
+static void __assert_str_non_null(tstring* s);
+static void __assert_str_null(tstring* s);
 
 typedef struct
 {
@@ -46,6 +39,16 @@ testcase tc[] = {
         {"ABCDEFGHIJKLMNOPQRSTUVWXYZ",  1, 26, __assert_str_null,     ""},
         {"ABCDEFGHIJKLMNOPQRSTUVWXYZ", 21,  6, __assert_str_null,     ""}
 };
+
+static void __assert_str_non_null(tstring* s)
+{
+        assert_non_null(s);
+}
+
+static void __assert_str_null(tstring* s)
+{
+        assert_null(s);
+}
 
 static void __validate_string(const tstring* s, const char* data)
 {
