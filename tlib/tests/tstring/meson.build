@@ -37,6 +37,8 @@ tlib_tests = {
         'tstring_last_indexof_v6' : {},
         'tstring_substring' : {},
         'tstring_substring_v2' : {},
+        'tstring_concat' : {},
+        'tstring_concat_v2' : {},
 }
 
 foreach test_name, extra_args : tlib_tests
