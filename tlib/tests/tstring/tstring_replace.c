@@ -133,7 +133,7 @@ static void __run_test_case(const testcase* tc)
         tstring_free(s);
 }
 
-static void __test_string_concat(void** state)
+static void __test_string_replace(void** state)
 {
         for (size_t i = 0; i < sizeof(tc)/sizeof(tc[0]); i++)
         {
@@ -147,7 +147,7 @@ static void __test_string_concat(void** state)
 int main(void)
 {
         const struct CMUnitTest tests[] = {
-                cmocka_unit_test(__test_string_concat),
+                cmocka_unit_test(__test_string_replace),
         };
         return cmocka_run_group_tests(tests, NULL, NULL);
 }
