@@ -39,6 +39,7 @@ tlib_tests = {
         'tstring_substring_v2' : {},
         'tstring_concat' : {},
         'tstring_concat_v2' : {},
+        'tstring_replace' : {},
 }
 
 foreach test_name, extra_args : tlib_tests
