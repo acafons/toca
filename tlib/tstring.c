@@ -1133,19 +1133,14 @@ bool tstring_contains(const tstring* s, const char* str)
  * @param[in] str  The sequence to search for.
  * 
  * @returns the number occurences found or -1 if there is no
- *         memory enough to complete the operation. 
+ *          memory enough to complete the operation. 
  */
 int tstring_count_ocurrences_of(const tstring* s, const char* str)
 {
-        int   i;
-        char* p;
-        char* save = strdup(s->cstr);
+        int   i = 0;
+        char *p = s->cstr;
 
-        if (!save) return -1;
-        
-        for (i=0, p=save; strtok_r(p, str, &p); i++);
-
-        free(save);
+        for (; (p = strstr(p, str)); i++, p++);
 
         return i;
 }

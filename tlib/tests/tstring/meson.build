@@ -41,6 +41,7 @@ tlib_tests = {
         'tstring_concat_v2' : {},
         'tstring_replace' : {},
         'tstring_contains' : {},
+        'tstring_count_ocurrences_of' : {},
 }
 
 foreach test_name, extra_args : tlib_tests
